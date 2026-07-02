@@ -1,0 +1,76 @@
+erDiagram
+  USER {
+    int user_id PK
+    string login_id
+    string password
+    string email UK
+    string phone_number
+    date birth_date
+    datetime created_at
+  }
+  CONCERT {
+    int consert_id PK
+    int venue_id FK
+    varchar(255) img_url
+    string title
+    string description
+    int booking_cnt
+    datetime created_at
+  }
+  VENUE {
+    int venue_id PK
+    string name
+    string address
+  }
+  SCHEDULE {
+    int schedule_id PK
+    int concert_id FK
+    datetime start_time
+    datetime end_time
+  }
+  SEAT {
+    int seat_id PK
+    int venue_id FK
+    string section
+    string row
+    int number
+  }
+  SEAT_INVENTORY {
+    int sear_inventory_id PK
+    int seat_id FK
+    int schedule_id FK
+    string status
+    datetime expire_time
+    int version
+    int price
+  }
+  RESERVATION {
+    int reservation_id PK
+    int user_id FK
+    int seat_inventory_id FK
+    string status
+    datetime created_at
+  }
+  PAYMENT {
+    int payment_id PK
+    int reservation_id FK
+    string status
+    int amount
+    datetime created_at
+  }
+  EVENT{
+    int event_id PK
+    int consert_id FK
+    string title
+    string description
+  }
+
+  USER ||--o{ RESERVATION : places
+  CONCERT }o--|| VENUE : held_at
+  CONCERT ||--o{ SCHEDULE : has
+  CONCERT ||--|| EVENT : event_banner
+  VENUE ||--o{ SEAT : contains
+  SEAT ||--o{ SEAT_INVENTORY : tracked_by
+  SCHEDULE ||--o{ SEAT_INVENTORY : for
+  RESERVATION ||--|| SEAT_INVENTORY : holds
+  RESERVATION ||--o| PAYMENT : paid_by
