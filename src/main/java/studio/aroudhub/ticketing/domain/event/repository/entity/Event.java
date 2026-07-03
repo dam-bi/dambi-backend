@@ -1,16 +1,18 @@
 package studio.aroudhub.ticketing.domain.event.repository.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
 @Entity
+@Getter
 @Table(name = "event")
 public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "event_id")
-    private Long eventId;
+    private int eventId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "concert_id", nullable = false)
@@ -18,5 +20,8 @@ public class Event {
 
     @Column(name = "title", nullable = false, length = 255)
     private String title;
+
+    @Column(name = "description", nullable = false, length = 255)
+    private String description;
 
 }

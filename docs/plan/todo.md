@@ -262,6 +262,71 @@
 * [ ] 각 페이지에 더미 데이터가 정상적으로 표시됨
 * [ ] 페이지별 기본 레이아웃 및 스크롤 동작 확인
 
+### 2026-07-02
+
+#### 코드 기준 진행상황 점검
+
+* [x] 프로젝트 구조 확인
+
+  * Spring Boot 4.0.6, Java 26, Gradle 기반 백엔드 프로젝트
+  * 현재 소스는 `domain` 하위에 `home`, `event`, `concert`, `venue` 중심으로 구성
+  * 별도 프론트엔드 프로젝트나 템플릿 파일은 아직 없음
+
+* [ ] 이벤트 페이지 개발
+
+  * [x] `/events` 라우트 생성 확인
+  * [x] `EventSummary` record 및 `EventService.findActiveEvents()` 더미 데이터 구성 확인
+  * [x] `Event` JPA 엔티티와 `EventRepository` 생성 확인
+  * [ ] `/events` 컨트롤러가 이벤트 더미 데이터를 반환하도록 연결 필요
+  * [ ] `/events` 현재 응답은 `"event main test"` 문자열만 반환
+  * [ ] `SecurityConfig`에 `/api/v1/events` 허용 설정은 있으나 실제 컨트롤러 라우트는 없음
+  * [ ] 더미 데이터 한글 문자열 인코딩 깨짐 수정 필요
+  * [ ] 배너 클릭 시 해당 콘서트 상세/사이트로 이동하는 기능 미구현
+
+* [ ] 홈 페이지 개발
+
+  * [x] `/` 라우트 생성 확인
+  * [x] HTML 문자열 기반 이벤트 배너 화면 일부 구현 확인
+  * [x] 홈 배너가 `/events`로 이동하도록 링크 연결 확인
+  * [ ] 홈 화면 한글 문자열 인코딩 깨짐 수정 필요
+  * [ ] 메인 페이지는 계획상 마지막 구현 대상이므로 현재 구현 범위 재검토 필요
+
+* [ ] 공연 상세/목록 관련 개발
+
+  * [x] `/concerts?concertId=...` 라우트 생성 확인
+  * [x] `ConcertControllerTest` 테스트 코드 생성 확인
+  * [ ] `/concerts` 현재 응답은 `"concert"` 문자열만 반환
+  * [ ] `concertId` 파라미터를 사용한 공연 조회 로직 미구현
+  * [ ] `Concert` 엔티티 필드 일부 정의 확인
+  * [ ] `Concert`-`Venue` 매핑 수정 필요: `@ManyToOne` 필드에 `@Column`이 사용되어 있어 `@JoinColumn` 검토 필요
+  * [ ] `Venue` 클래스는 아직 JPA 엔티티로 구현되지 않음
+
+* [ ] 공지사항 페이지 개발
+
+  * [ ] 공지사항 관련 패키지, 컨트롤러, 서비스, 엔티티 미구현
+  * [ ] 공지사항 라우트 미구현
+  * [ ] 공지사항 더미 데이터 미구현
+
+* [ ] 보안/공통 설정
+
+  * [x] `SecurityConfig` 생성 확인
+  * [x] `/`, `/events`, `/api/v1/events`, `/concerts/**` 접근 허용 설정 확인
+  * [ ] 현재 `anyRequest().permitAll()` 상태이므로 인증 기능 구현 시 정책 재검토 필요
+
+* [ ] 검증 결과
+
+  * [ ] `./gradlew.bat test` 실패
+  * [ ] 실패 사유: 테스트 실행 단계에서 `TicketingApplicationTests`, `ConcertControllerTest` ClassNotFoundException 발생
+  * [ ] 테스트 클래스 컴파일/실행 설정 또는 Gradle/Spring Boot 4 테스트 설정 확인 필요
+
+#### 다음 우선 작업 제안
+
+1. 소스 파일 한글 인코딩 깨짐 수정
+2. `/events` 응답을 `EventService.findActiveEvents()` 데이터와 연결
+3. 공지사항 도메인 및 `/notices` 라우트 생성
+4. `Concert`-`Venue` JPA 매핑 수정
+5. Gradle 테스트 실행 실패 원인 확인 및 테스트 통과 상태 복구
+
 ### 이후 일정 등록 예정
 
 다음 기능들은 추후 일자별 TODO로 등록하여 관리한다.
