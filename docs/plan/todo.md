@@ -327,6 +327,59 @@
 4. `Concert`-`Venue` JPA 매핑 수정
 5. Gradle 테스트 실행 실패 원인 확인 및 테스트 통과 상태 복구
 
+### 2026-07-07
+
+#### 현재 개발 진척사항
+
+* [x] 워크트리 기준 현행 소스 점검
+
+  * `git status --short` 기준 미커밋 변경 없음
+  * 최근 반영 커밋에 `/events` 응답 수정 및 CORS 설정 변경 이력 확인
+
+* [ ] 이벤트 페이지 개발
+
+  * [x] `EventController`가 `GET /events` 요청에 `EventService.findAll()` 결과를 JSON 배열로 반환
+  * [x] `EventService`에 정적 더미 이벤트 1건 연결
+  * [x] `EventControllerTest`가 JSON 응답 구조를 기준으로 작성됨
+  * [ ] 현재 이벤트 데이터는 DB 연동 없이 하드코딩된 더미 데이터만 제공
+  * [ ] 이벤트 배너 클릭 이후 콘서트 상세 연결 기능은 아직 없음
+
+* [ ] 홈 페이지 개발
+
+  * [x] `GET /`에서 HTML 배너 화면 반환
+  * [x] 홈 배너가 `/events`로 이동하도록 연결
+  * [x] 홈 화면 한글 문자열 인코딩 문제는 현재 소스 기준 해소됨
+  * [ ] 메인 페이지는 여전히 단일 배너 수준의 초기 화면만 구현됨
+
+* [ ] 공연 상세/목록 관련 개발
+
+  * [x] `GET /concerts?concertId=...` 라우트와 테스트 코드 존재
+  * [ ] `ConcertController`는 아직 `"concert"` 고정 문자열만 반환
+  * [ ] `concertId`를 사용한 조회 로직, 상세 응답 모델, 화면 반환은 미구현
+
+* [ ] 공지사항 페이지 개발
+
+  * [ ] 공지사항 도메인, 라우트, 서비스, 테스트 코드 모두 미구현
+
+* [ ] 보안/공통 설정
+
+  * [x] `SecurityConfig`에서 `/`, `/events`, `/api/v1/events`, `/concerts/**` 허용
+  * [x] `WebConfig`/CORS 관련 최근 수정 커밋 반영 확인
+  * [ ] 현재 `anyRequest().permitAll()` 상태라 인증/인가 정책은 아직 본격 적용 전
+
+* [ ] 검증 결과
+
+  * [ ] `./gradlew.bat test` 실행은 이 환경에서 124초 타임아웃으로 완료 결과 미확인
+  * [ ] 최소한 `EventControllerTest`, `ConcertControllerTest` 소스는 현재 구현 상태와 일치
+
+#### 다음 우선 작업
+
+1. `./gradlew.bat test` 타임아웃 원인 확인 및 테스트 완료까지 검증
+2. 이벤트 더미 데이터를 DB 또는 실제 저장소 조회로 전환
+3. 공지사항 도메인과 `/notices` 라우트 신설
+4. `ConcertController`에 `concertId` 기반 상세 조회 로직 연결
+5. 메인 페이지를 계획 문서의 최종 구현 범위에 맞게 재정리
+
 ### 이후 일정 등록 예정
 
 다음 기능들은 추후 일자별 TODO로 등록하여 관리한다.
