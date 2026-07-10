@@ -4,7 +4,9 @@ spring:
   profiles:
     default: local
 
+
 ---
+# local: 개발자 로컬 환경에서 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
@@ -20,6 +22,8 @@ spring:
     show-sql: true
 
 ---
+
+# testWithoutDB: DB 연결 없이 화면/컨트롤러/비DB 테스트를 실행하는 모드
 spring:
   config:
     activate:
@@ -30,7 +34,9 @@ spring:
       - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
       - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
 
+
 ---
+# dev: 개발 서버 환경에서 개발용 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
@@ -46,6 +52,7 @@ spring:
     show-sql: false
 
 ---
+# prod: 운영 서버 환경에서 운영 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
