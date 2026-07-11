@@ -18,7 +18,7 @@ spring:
     driver-class-name: ${LOCAL_DB_DRIVER:org.postgresql.Driver}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
 
 ---
@@ -28,6 +28,8 @@ spring:
   config:
     activate:
       on-profile: testWithoutDB
+  flyway:
+    enabled: false
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration

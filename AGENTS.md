@@ -15,6 +15,7 @@
 - Put datasource and JPA settings under the `local`, `dev`, and `prod` profile sections.
 - Put datasource/JPA/repository auto-configuration excludes under the `testWithoutDB` profile section.
 - Keep production secrets out of version-controlled config files. Use environment variables or external secrets.
+- Keep personal information, sensitive information, credentials, and local/shared secrets out of version-controlled files. Store them in environment variables or `.env` files that are gitignored.
 
 ## Auth Rules
 
