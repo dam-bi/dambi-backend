@@ -1,5 +1,4 @@
 /# Repository Guidelines
-## Latest update: 2026-07-11
 
 ## Project Structure & Module Organization
 This package contains the main Spring Boot application code under `src/main/java/studio/aroudhub/ticketing`. `TicketingApplication.java` is the application entry point. Shared configuration lives in `config/` and `global/config/`. Business code is organized by feature under `domain/`, for example `domain/event`, `domain/concert`, and `domain/home`, typically split into `controller`, `service`, `repository`, and `repository/entity`.
