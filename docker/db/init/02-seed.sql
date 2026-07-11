@@ -89,19 +89,45 @@ SET
     show_list = EXCLUDED.show_list;
 
 INSERT INTO event (event_id, concert_id, title, description)
-VALUES
-    (
-        1,
-        1,
-        'Early Bird Open',
-        'Discount event for the first Seoul Summer Live reservations.'
-    ),
-    (
-        2,
-        2,
-        'Encore Ticket Alert',
-        'Frontend seed event tied to the Night Festival Encore concert.'
-    )
+SELECT
+    seed.event_id,
+    seed.concert_id,
+    seed.title,
+    seed.description
+FROM (
+    VALUES
+        (
+            1,
+            1,
+            '〈현역가왕3〉 전국투어 콘서트 - 대전',
+            '이벤트설명'
+        ),
+        (
+            2,
+            2,
+            '이벤트: Charlie Puth - Whatever＇s Clever! World Tour in Seoul',
+            '공연장에서 진행되는 모든 무대 연출, 공연 시간, 셋리스트 등은 아티스트의 요청과 결정에 따라 진행됩니다.'
+        ),
+        (
+            3,
+            5,
+            '이벤트: DAY6 10th Anniversary Tour〈The DECADE〉FINALE in SEOUL',
+            '데이식스 노래 playList'
+        ),
+        (
+            4,
+            5,
+            '!특가 싸이흠뻑쇼 SUMMERSWAG2026 - 수원!',
+            '한 여름을 책임질 싸이의 쇼'
+        ),
+        (
+            5,
+            6,
+            '이벤트: 뮤지컬 드라큘라 (Dracula：The Musical)',
+            '감미로운 음악. '
+        )
+) AS seed(event_id, concert_id, title, description)
+JOIN concert c ON c.concert_id = seed.concert_id
 ON CONFLICT (event_id) DO UPDATE
 SET
     concert_id = EXCLUDED.concert_id,
