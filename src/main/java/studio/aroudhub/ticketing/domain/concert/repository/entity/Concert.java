@@ -5,6 +5,7 @@ import lombok.Getter;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -42,4 +43,18 @@ public class Concert {
 
     @Column(name="start_date", nullable = false)
     private LocalDateTime startDate;
+
+    @Column(name="end_date", nullable = false)
+    private LocalDateTime endDate;
+
+    @Column(name="age_rating", nullable = false)
+    private String age_rating;
+
+    @Column(name="price", nullable = false)
+    private int price;
+
+    // showList는 웹 관점에서 json 배열이 들어갈 곳. DB에서는 어떻게 처리?
+    @Convert(converter = ShowInfoListConverter.class)
+    @Column(name="show_list", columnDefinition = "json", nullable = false)
+    private List<ShowInfo> showList;
 }
