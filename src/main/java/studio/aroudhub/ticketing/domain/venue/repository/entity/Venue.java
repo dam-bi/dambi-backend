@@ -18,7 +18,7 @@ public class Venue {
     @Column(name = "venue_id")
     private int venueId;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false, length = 20)
     private String name;
 
     @Column(name = "address", nullable = false, length = 255)
