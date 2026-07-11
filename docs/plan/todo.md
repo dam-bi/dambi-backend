@@ -380,6 +380,43 @@
 4. `ConcertController`에 `concertId` 기반 상세 조회 로직 연결
 5. 메인 페이지를 계획 문서의 최종 구현 범위에 맞게 재정리
 
+### 2026-07-08
+
+#### 현재 개발 진척사항
+
+* [x] 워크트리 기준 진행 중 변경사항 확인
+
+  * `git status --short` 기준 인증 관련 파일 5개 변경 확인
+  * 변경 파일: `AuthController`, `SigninDTO`, `Users`, `AuthService`, `TicketingApplicationTests`
+
+* [ ] 회원가입/인증 기능 개발
+
+  * [x] `AuthController` 생성 및 `/auth/signin` POST 라우트 초안 추가 확인
+  * [x] `SigninDTO` 생성 및 `name`, `email`, `phoneNumber`, `password` 필드 정의 확인
+  * [x] `Users` 엔티티에 `name` 필드 추가 확인
+  * [x] `AuthService.signin(SigninDTO)` 메서드 시그니처 추가 확인
+  * [ ] `AuthController`의 `AuthService` 주입 방식 미완성
+  * [ ] `/auth/signin` 컨트롤러 메서드가 요청 바인딩, 서비스 호출, 응답 처리 없이 비어 있음
+  * [ ] `AuthService`에 `@Service` 선언, 저장 로직, 비밀번호 처리, 예외 처리 없음
+  * [ ] `Users` 엔티티와 `SigninDTO` 사이의 필드 매핑 기준 불명확
+  * [ ] `loginId`는 엔티티에 필수지만 `SigninDTO`에는 없어 회원가입 입력 모델 정리가 필요
+  * [ ] `Users.phone_number` 필드명이 자바 네이밍 규칙과 달라 후속 정리 필요
+  * [ ] 사용자 저장용 Repository, 중복 검사, 검증 로직 미구현
+
+* [ ] 테스트 상태
+
+  * [x] `TicketingApplicationTests`의 `contextLoads()` 테스트 제거 확인
+  * [ ] 현재 테스트 클래스에는 실행 테스트 메서드가 없음
+  * [ ] 인증 기능 관련 컨트롤러/서비스 테스트 미구현
+
+#### 다음 우선 작업
+
+1. `AuthController`에 요청 DTO 바인딩과 `AuthService.signin()` 호출 연결
+2. 사용자 저장용 Repository 및 회원가입 서비스 로직 구현
+3. `SigninDTO`와 `Users` 엔티티 간 필수 필드 정의 재정리 (`loginId`, `phoneNumber` 포함)
+4. 비밀번호 암호화와 입력값 검증 규칙 추가
+5. 인증 기능 기준 단위/통합 테스트 작성 및 실행 가능 상태 복구
+
 ### 이후 일정 등록 예정
 
 다음 기능들은 추후 일자별 TODO로 등록하여 관리한다.
