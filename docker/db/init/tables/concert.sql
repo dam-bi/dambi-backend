@@ -48,6 +48,23 @@ VALUES
         '[
           {"showTime":"2026-09-05T18:00:00","label":"SAT 6PM"}
         ]'::json
+    ),
+    (
+        3,
+        1,
+        'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80',
+        'DAY6 The Decade Finale',
+        'Third seed concert used by the Day6 local event fixture.',
+        73,
+        '2026-07-03 14:00:00',
+        180,
+        '2026-10-03 18:00:00',
+        '2026-10-03 21:00:00',
+        '12+',
+        121000,
+        '[
+          {"showTime":"2026-10-03T18:00:00","label":"SAT 6PM"}
+        ]'::json
     )
 ON CONFLICT (concert_id) DO UPDATE
 SET

@@ -18,14 +18,14 @@ VALUES
         'Day6 ',
         '데이식스 이벤트 특가'
     )
-    ON CONFLICT (event_id) DO UPDATE
-                                  SET
-                                      concert_id = EXCLUDED.concert_id,
-                                  title = EXCLUDED.title,
-                                  description = EXCLUDED.description;
+ON CONFLICT (event_id) DO UPDATE
+SET
+    concert_id = EXCLUDED.concert_id,
+    title = EXCLUDED.title,
+    description = EXCLUDED.description;
 
 SELECT setval(
-               pg_get_serial_sequence('event', 'event_id'),
-               COALESCE((SELECT MAX(event_id) FROM event), 1),
-               true
-       );
+    pg_get_serial_sequence('event', 'event_id'),
+    COALESCE((SELECT MAX(event_id) FROM event), 1),
+    true
+);
