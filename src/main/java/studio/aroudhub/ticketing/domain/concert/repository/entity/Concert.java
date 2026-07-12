@@ -1,6 +1,16 @@
 package studio.aroudhub.ticketing.domain.concert.repository.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
@@ -21,11 +31,11 @@ public class Concert {
     @JoinColumn(name = "venue_id", nullable = false)
     private Venue venue;
 
-    @Column(name = "img_url", length = 255)
-    private String imgUrl;
-
     @Column(name = "title", nullable = false)
     private String title;
+
+    @Column(name = "img_url", length = 255)
+    private String imgUrl;
 
     @Column(name = "description")
     private String description;
@@ -34,27 +44,27 @@ public class Concert {
     private int bookingCnt;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private String createdAt;
 
-    // concert List에서는 venue : 장소도 추가해야 하지만, 여기서는 생략. concertListDTO에서 추가예정.
-
-    @Column(name="running_time")
+    @Column(name = "running_time")
     private int running_time;
 
-    @Column(name="start_date", nullable = false)
+    @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 
-    @Column(name="end_date", nullable = false)
+    @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    @Column(name="age_rating", nullable = false)
+    @Column(name = "age_rating", nullable = false)
     private String age_rating;
 
-    @Column(name="price", nullable = false)
-    private int price;
+    @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
+    private List<ConcertPrice> price;
 
-    // showList는 웹 관점에서 json 배열이 들어갈 곳. DB에서는 어떻게 처리?
-    @Convert(converter = ShowInfoListConverter.class)
-    @Column(name="show_list", columnDefinition = "json", nullable = false)
-    private List<ShowInfo> showList;
+//    @Convert(converter = ShowInfoListConverter.class)
+//    @Column(name = "show_list", columnDefinition = "json", nullable = false)
+//    private List<ShowInfo> showList;
+
+    @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
+    private List<ConcertSchedule> date;
 }

@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +23,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import studio.aroudhub.ticketing.domain.concert.TestEntityFactory;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertDetailResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertListItem;
-import studio.aroudhub.ticketing.domain.concert.repository.entity.ShowInfo;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertPrice;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertSchedule;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.ScheduleShowTime;
 import studio.aroudhub.ticketing.domain.concert.service.ConcertService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
@@ -72,21 +77,29 @@ class ConcertControllerTest {
     void getConcert_returnsConcertDetail() throws Exception {
         ConcertDetailResponse detail = new ConcertDetailResponse(
                 2,
+                7,
                 "Midnight Synthwave",
-                "Late night electronic showcase",
                 "https://cdn.example.com/posters/midnight-synthwave.jpg",
-                "Aurora Dome",
-                "123 Seoul Street",
+                "Late night electronic showcase",
                 548,
+                "2026-07-01",
+                "Aurora Dome",
                 140,
                 LocalDateTime.of(2026, 8, 12, 20, 0),
                 LocalDateTime.of(2026, 8, 15, 20, 0),
                 "15+",
-                132000,
                 List.of(
-                        new ShowInfo(
-                                LocalDateTime.of(2026, 8, 12, 20, 0),
-                                "Opening night"
+                        testConcertPrice(1, "VIP", 132000),
+                        testConcertPrice(2, "R", 99000)
+                ),
+                List.of(
+                        testConcertSchedule(
+                                1,
+                                LocalDate.of(2026, 8, 12),
+                                List.of(
+                                        new ScheduleShowTime(1, LocalTime.of(20, 0)),
+                                        new ScheduleShowTime(2, LocalTime.of(22, 30))
+                                )
                         )
                 )
         );
@@ -97,9 +110,14 @@ class ConcertControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.concertId").value(2))
+                .andExpect(jsonPath("$.venueId").value(7))
                 .andExpect(jsonPath("$.title").value("Midnight Synthwave"))
-                .andExpect(jsonPath("$.venueName").value("Aurora Dome"))
-                .andExpect(jsonPath("$.showList[0].label").value("Opening night"));
+                .andExpect(jsonPath("$.venue").value("Aurora Dome"))
+                .andExpect(jsonPath("$.price[0].rating").value("VIP"))
+                .andExpect(jsonPath("$.price[0].price").value(132000))
+                .andExpect(jsonPath("$.date[0].date").value("2026-08-12"))
+                .andExpect(jsonPath("$.date[0].showList[0].id").value(1))
+                .andExpect(jsonPath("$.date[0].showList[0].time").value("20:00:00"));
 
         verify(concertService).findDetail(2);
     }
@@ -116,5 +134,17 @@ class ConcertControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(concertService).findDetail(999);
+    }
+
+    private static ConcertPrice testConcertPrice(int concertPriceId, String rating, int price) {
+        return TestEntityFactory.createConcertPrice(concertPriceId, rating, price);
+    }
+
+    private static ConcertSchedule testConcertSchedule(
+            int concertScheduleId,
+            LocalDate date,
+            List<ScheduleShowTime> showList
+    ) {
+        return TestEntityFactory.createConcertSchedule(concertScheduleId, date, showList);
     }
 }
