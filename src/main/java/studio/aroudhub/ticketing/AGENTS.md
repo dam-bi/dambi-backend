@@ -24,6 +24,14 @@ Follow the repository-level rules in `AGENTS.md` when changing application code.
 
 Start with documents before code. Check `docs/project.md` for domain rules, states, APIs, and response shapes, and consult `docs/project/karpathy-guidelines.md` when planning or changing code. If docs and code disagree, resolve the source of truth first instead of guessing. Do not expand undefined requirements on your own.
 
+Use the most relevant supporting document for the task:
+
+- `docs/runtime-profiles.md` for Spring profile behavior.
+- `docs/docker-local.md` for local backend/frontend integration setup.
+- `docs/project.md` for product rules, API expectations, and domain behavior.
+- `docs/project/frontend-backend-separation.md` for React frontend and Spring Boot backend separation rules.
+- `docs/project/karpathy-guidelines.md` for implementation/planning guidance.
+
 Keep responsibilities strict:
 
 - Controllers handle HTTP mapping, validation, and response shaping only.

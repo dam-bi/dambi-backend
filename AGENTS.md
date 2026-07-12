@@ -33,9 +33,12 @@
 ## Docs Rules
 
 - Check relevant documents under `docs/` when the task touches runtime profiles, local Docker setup, project structure, plans, or other documented workflows.
-- Prefer the most task-relevant document first, for example `docs/runtime-profiles.md`, `docs/docker-local.md`, or `docs/project.md`.
+- Prefer the most task-relevant document first, for example `docs/runtime-profiles.md`, `docs/docker-local.md`, `docs/project.md`, or `docs/project/frontend-backend-separation.md`.
 - Treat `docs/plan/*.md` as planning/reference material unless the task explicitly requires updating implementation to match a plan.
 
 ## Reference
 
 - Detailed profile strategy: [docs/runtime-profiles.md](docs/runtime-profiles.md)
+- Local Docker and frontend integration: [docs/docker-local.md](docs/docker-local.md)
+- Product/domain and API reference: [docs/project.md](docs/project.md)
+- Frontend/backend separation rules: [docs/project/frontend-backend-separation.md](docs/project/frontend-backend-separation.md)
