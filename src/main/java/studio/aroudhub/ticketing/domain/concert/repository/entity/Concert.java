@@ -1,7 +1,6 @@
 package studio.aroudhub.ticketing.domain.concert.repository.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +14,6 @@ import lombok.Getter;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -61,10 +59,6 @@ public class Concert {
 
     @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
     private List<ConcertPrice> price;
-
-//    @Convert(converter = ShowInfoListConverter.class)
-//    @Column(name = "show_list", columnDefinition = "json", nullable = false)
-//    private List<ShowInfo> showList;
 
     @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
     private List<ConcertSchedule> date;
