@@ -9,21 +9,13 @@ import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
 public interface ConcertRepository extends JpaRepository<Concert, Integer> {
 
+    @EntityGraph(attributePaths = {"venue", "price", "date"})
     @Query("""
-            select new studio.aroudhub.ticketing.domain.concert.repository.ConcertListItem(
-                c.concertId,
-                c.title,
-                c.imgUrl,
-                v.name,
-                c.startDate,
-                c.endDate,
-                c.price
-            )
+            select c
             from Concert c
-            join c.venue v
             order by c.startDate asc, c.concertId asc
             """)
-    Page<ConcertListItem> findConcertPage(Pageable pageable);
+    Page<Concert> findConcertPage(Pageable pageable);
 
     @EntityGraph(attributePaths = "venue")
     java.util.Optional<Concert> findByConcertId(int concertId);
