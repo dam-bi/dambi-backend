@@ -21,13 +21,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",
-                                "/events",
-                                "/index.html",
-                                "/assets/**",
-                                "/favicon.ico",
                                 "/api/events",
-                                "/concerts/**",
+                                "/api/concerts",
+                                "/api/concerts/**",
                                 "/auth/**"
                         ).permitAll()
                         .anyRequest().permitAll()
