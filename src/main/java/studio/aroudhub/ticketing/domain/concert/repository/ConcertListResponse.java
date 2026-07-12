@@ -2,7 +2,6 @@ package studio.aroudhub.ticketing.domain.concert.repository;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,9 +28,9 @@ public record ConcertListResponse(
         @JsonProperty("running_time")
         int runningTime,
         @JsonProperty("start_date")
-        LocalDateTime startDate,
+        LocalDate startDate,
         @JsonProperty("end_date")
-        LocalDateTime endDate,
+        LocalDate endDate,
         @JsonProperty("age_rating")
         String ageRating,
         List<PriceItem> price,

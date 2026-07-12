@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +51,8 @@ class ConcertControllerTest {
                         "2026-06-20",
                         "Blue Hall",
                         150,
-                        LocalDateTime.of(2026, 7, 20, 19, 0),
-                        LocalDateTime.of(2026, 7, 27, 19, 0),
+                        LocalDate.of(2026, 7, 20),
+                        LocalDate.of(2026, 7, 27),
                         "12+",
                         List.of(
                                 new ConcertListResponse.PriceItem("VIP", 99000),
@@ -85,8 +84,8 @@ class ConcertControllerTest {
                 .andExpect(jsonPath("$.content[0].created_at").value("2026-06-20"))
                 .andExpect(jsonPath("$.content[0].venue").value("Blue Hall"))
                 .andExpect(jsonPath("$.content[0].running_time").value(150))
-                .andExpect(jsonPath("$.content[0].start_date").value("2026-07-20T19:00:00"))
-                .andExpect(jsonPath("$.content[0].end_date").value("2026-07-27T19:00:00"))
+                .andExpect(jsonPath("$.content[0].start_date").value("2026-07-20"))
+                .andExpect(jsonPath("$.content[0].end_date").value("2026-07-27"))
                 .andExpect(jsonPath("$.content[0].age_rating").value("12+"))
                 .andExpect(jsonPath("$.content[0].price[0].price").value(99000))
                 .andExpect(jsonPath("$.content[0].date[0].show_list[0].time").value("19:00"));
@@ -107,8 +106,8 @@ class ConcertControllerTest {
                 "2026-07-01",
                 "Aurora Dome",
                 140,
-                LocalDateTime.of(2026, 8, 12, 20, 0),
-                LocalDateTime.of(2026, 8, 15, 20, 0),
+                LocalDate.of(2026, 8, 12),
+                LocalDate.of(2026, 8, 15),
                 "15+",
                 List.of(
                         new ConcertListResponse.PriceItem("VIP", 132000),
@@ -140,8 +139,8 @@ class ConcertControllerTest {
                 .andExpect(jsonPath("$.created_at").value("2026-07-01"))
                 .andExpect(jsonPath("$.venue").value("Aurora Dome"))
                 .andExpect(jsonPath("$.running_time").value(140))
-                .andExpect(jsonPath("$.start_date").value("2026-08-12T20:00:00"))
-                .andExpect(jsonPath("$.end_date").value("2026-08-15T20:00:00"))
+                .andExpect(jsonPath("$.start_date").value("2026-08-12"))
+                .andExpect(jsonPath("$.end_date").value("2026-08-15"))
                 .andExpect(jsonPath("$.age_rating").value("15+"))
                 .andExpect(jsonPath("$.price[0].rating").value("VIP"))
                 .andExpect(jsonPath("$.price[0].price").value(132000))

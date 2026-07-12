@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,10 +51,10 @@ public class Concert {
     private int running_time;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     @Column(name = "age_rating", nullable = false)
     private String age_rating;

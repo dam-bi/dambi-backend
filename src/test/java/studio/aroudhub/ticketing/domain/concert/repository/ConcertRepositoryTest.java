@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -43,8 +43,8 @@ class ConcertRepositoryTest {
                 21,
                 "2026-06-01",
                 120,
-                LocalDateTime.of(2026, 7, 10, 19, 0),
-                LocalDateTime.of(2026, 7, 10, 21, 0),
+                LocalDate.of(2026, 7, 10),
+                LocalDate.of(2026, 7, 10),
                 "12+"
         );
         entityManager.persist(concert);
@@ -80,8 +80,8 @@ class ConcertRepositoryTest {
                 11,
                 "2026-06-02",
                 130,
-                LocalDateTime.of(2026, 8, 2, 20, 0),
-                LocalDateTime.of(2026, 8, 2, 22, 10),
+                LocalDate.of(2026, 8, 2),
+                LocalDate.of(2026, 8, 2),
                 "15+"
         );
         entityManager.persist(concert);
@@ -108,8 +108,8 @@ class ConcertRepositoryTest {
             int bookingCnt,
             String createdAt,
             int runningTime,
-            LocalDateTime startDate,
-            LocalDateTime endDate,
+            LocalDate startDate,
+            LocalDate endDate,
             String ageRating
     ) {
         Concert concert = new Concert();
