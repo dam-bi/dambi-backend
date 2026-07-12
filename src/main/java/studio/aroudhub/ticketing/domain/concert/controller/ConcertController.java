@@ -14,6 +14,7 @@ import studio.aroudhub.ticketing.domain.concert.service.ConcertService;
 
 @RestController
 @RequestMapping("/api/concerts")
+// 콘서트 목록 조회와 상세 조회 요청을 처리하는 REST 컨트롤러
 public class ConcertController {
 
     private final ConcertService concertService;
@@ -23,6 +24,7 @@ public class ConcertController {
     }
 
     @GetMapping
+    // 페이지 번호와 크기를 받아 콘서트 목록을 페이징 조회한다.
     public Page<ConcertListItem> getConcerts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size
@@ -32,6 +34,7 @@ public class ConcertController {
     }
 
     @GetMapping("/{concertId}")
+    // 콘서트 ID로 특정 콘서트의 상세 정보를 조회한다.
     public ConcertDetailResponse getConcert(
             @PathVariable int concertId
     ) {
