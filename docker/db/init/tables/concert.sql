@@ -9,9 +9,7 @@ INSERT INTO concert (
     running_time,
     start_date,
     end_date,
-    age_rating,
-    price,
-    show_list
+    age_rating
 )
 VALUES
     (
@@ -20,51 +18,64 @@ VALUES
         'https://res.cloudinary.com/dvvryn0ya/image/upload/v1782454329/26008688_p_eo5sww.gif',
         '〈현역가왕3〉 전국투어 콘서트 - 대전',
         '예매가능시간 관람 3시간 전까지-2026년 8월 8일(토) 1PM, 6PM',
-        8,
+        12840,
         '2026-06-26',
-        120,
-        '2026-08-08',
-        '2026-08-08',
-        '8세이상 관람가능',
-        99000,
-        '[
-          {"showTime":"2026-08-15T19:00:00","label":"SAT 7PM"},
-          {"showTime":"2026-08-16T18:00:00","label":"SUN 6PM"}
-        ]'::json
+        360,
+        DATE '2026-08-08',
+        DATE '2026-08-08',
+        '8세이상 관람가능'
     ),
     (
         2,
         2,
-        'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80',
-        'Night Festival Encore',
-        'Second seed concert with a different venue and schedule.',
-        58,
-        '2026-07-02 10:30:00',
-        150,
-        '2026-09-05 18:00:00',
-        '2026-09-05 20:30:00',
-        'All',
-        77000,
-        '[
-          {"showTime":"2026-09-05T18:00:00","label":"SAT 6PM"}
-        ]'::json
+        'https://res.cloudinary.com/dvvryn0ya/image/upload/v1782456053/L0000142_p_oqustx.gif',
+        '뮤지컬 드라큘라 (Dracula：The Musical)',
+        '※ 본 공연은 LG아트센터 서울 연동 공연으로, 예매대기 서비스 및 취소후 재예매 서비스가 제공되지 않습니다.',
+        15600,
+        '2026-06-05',
+        165,
+        DATE '2026-07-10',
+        DATE '2026-10-18',
+        '14세이상 관람가능'
     ),
     (
         3,
-        1,
-        'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80',
-        'DAY6 The Decade Finale',
-        'Third seed concert used by the Day6 local event fixture.',
-        73,
-        '2026-07-03 14:00:00',
+        3,
+        'https://res.cloudinary.com/dvvryn0ya/image/upload/v1782457274/psy_bemhbx.gif',
+        '싸이흠뻑쇼 SUMMERSWAG2026 - 수원',
+        '예매가능시간: 전일17시(월~토 관람 시)까지/전일 11시(일요일 관람 시)까지',
+        15600,
+        '2026-05-10',
+        18000,
+        DATE '2026-08-01',
+        DATE '2026-08-02',
+        '전체관람가'
+    ),
+    (
+        4,
+        4,
+        'https://res.cloudinary.com/dvvryn0ya/image/upload/v1782457274/psy_bemhbx.gif',
+        'DAY6 10th Anniversary Tour〈The DECADE〉FINALE in SEOUL',
+        '2026년 06월 01일 00시 00분~2026년 07월 05일 23시 59분까지.무통장입금 결제가 불가능합니다.',
+        4891,
+        '2026-05-10',
         180,
-        '2026-10-03 18:00:00',
-        '2026-10-03 21:00:00',
-        '12+',
-        121000,
-        '[
-          {"showTime":"2026-10-03T18:00:00","label":"SAT 6PM"}
-        ]'::json
+        DATE '2026-07-03',
+        DATE '2026-07-05',
+        '만 7세이상'
+    ),
+    (
+        5,
+        5,
+        'https://res.cloudinary.com/dvvryn0ya/image/upload/v1782458068/charli_wciywi.gif',
+        'Charlie Puth - Whatever＇s Clever! World Tour in Seoul',
+        '공연장에서 진행되는 모든 무대 연출, 공연 시간, 셋리스트 등은 아티스트의 요청과 결정에 따라 진행됩니다.',
+        590,
+        '2026-06-15',
+        240,
+        DATE '2026-11-14',
+        DATE '2026-11-14',
+        '만 7세이상'
     )
 ON CONFLICT (concert_id) DO UPDATE
 SET
@@ -77,9 +88,7 @@ SET
     running_time = EXCLUDED.running_time,
     start_date = EXCLUDED.start_date,
     end_date = EXCLUDED.end_date,
-    age_rating = EXCLUDED.age_rating,
-    price = EXCLUDED.price,
-    show_list = EXCLUDED.show_list;
+    age_rating = EXCLUDED.age_rating;
 
 SELECT setval(
     pg_get_serial_sequence('concert', 'concert_id'),
