@@ -24,4 +24,7 @@ public class Event {
     @Column(name = "description", nullable = false, length = 255)
     private String description;
 
+    // status: 예정, 진행중, 종료
+    @Column(name = "status", nullable = false, length = 255)
+    private String status;
 }

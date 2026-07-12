@@ -12,7 +12,8 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
                 e.eventId,
                 c.concertId,
                 e.title,
-                e.description
+                e.description, 
+                e.status
             )
             from Event e
             join e.concert c

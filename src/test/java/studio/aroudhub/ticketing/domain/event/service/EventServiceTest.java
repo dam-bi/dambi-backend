@@ -20,7 +20,8 @@ class EventServiceTest {
                         7,
                         33,
                         "Summer package",
-                        "Bundle promotion for weekend bookings"
+                        "Bundle promotion for weekend bookings",
+                        "SCHEDULED"
                 )
         );
 

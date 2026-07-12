@@ -43,7 +43,8 @@ class EventControllerTest {
                         1,
                         101,
                         "Early bird discount",
-                        "Discount event for early reservations"
+                        "Discount event for early reservations",
+                        "진행중"
                 )
         );
 
@@ -55,7 +56,8 @@ class EventControllerTest {
                 .andExpect(jsonPath("$[0].eventId").value(1))
                 .andExpect(jsonPath("$[0].concertId").value(101))
                 .andExpect(jsonPath("$[0].title").value("Early bird discount"))
-                .andExpect(jsonPath("$[0].description").value("Discount event for early reservations"));
+                .andExpect(jsonPath("$[0].description").value("Discount event for early reservations"))
+                .andExpect(jsonPath("$[0].status").value("진행중"));
 
         verify(eventService).findAll();
     }
