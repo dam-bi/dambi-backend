@@ -1,7 +1,6 @@
 package studio.aroudhub.ticketing.domain.concert.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
 import java.lang.reflect.Field;
@@ -67,7 +66,7 @@ class ConcertRepositoryTest {
     }
 
     @Test
-    void findConcertPage_throwsExceptionWhenFetchingTwoBagCollections() {
+    void findConcertPage_returnsConcertPageWithoutMultipleBagFetchException() {
         // 현재 목록 조회는 price와 date 두 개의 bag 컬렉션을 함께 fetch 하므로 예외가 발생하는지 확인한다.
         Venue venue = createVenue("Blue Square", "45 Gangnam-daero");
         entityManager.persist(venue);
@@ -88,9 +87,10 @@ class ConcertRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        assertThatThrownBy(() -> concertRepository.findConcertPage(PageRequest.of(0, 10)))
-                .isInstanceOf(Exception.class)
-                .hasMessageContaining("multiple bags");
+        Page<Concert> result = concertRepository.findConcertPage(PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("Late Night Rock");
     }
 
     private Venue createVenue(String name, String address) {

@@ -9,11 +9,10 @@ import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
 public interface ConcertRepository extends JpaRepository<Concert, Integer> {
 
-    @EntityGraph(attributePaths = {"venue", "price", "date"})
+    @EntityGraph(attributePaths = {"venue", "price"})
     @Query("""
             select c
             from Concert c
-            order by c.startDate asc, c.concertId asc
             """)
     Page<Concert> findConcertPage(Pageable pageable);
 

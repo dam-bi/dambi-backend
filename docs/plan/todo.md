@@ -431,3 +431,6 @@
 * 메인 페이지
 * 마이페이지
 * 관람후기 및 리뷰 기능
+* `GET /api/concerts` 목록 조회 fetch 전략 재설계
+  현재는 `MultipleBagFetchException` 회피를 위해 `ConcertRepository.findConcertPage()`에서 `price`만 fetch 하고 `date`는 서비스 트랜잭션 안에서 lazy 로딩한다.
+  추후 DTO projection, 컬렉션 분리 조회, 또는 컬렉션 매핑 구조 조정으로 예외 회피성 구현을 제거할 것.
