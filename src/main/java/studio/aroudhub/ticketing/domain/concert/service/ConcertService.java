@@ -5,8 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertDetailResponse;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertListItem;
+import studio.aroudhub.ticketing.domain.concert.repository.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
@@ -19,16 +18,17 @@ public class ConcertService {
         this.concertRepository = concertRepository;
     }
 
-    public Page<ConcertListItem> findPage(Pageable pageable) {
-        return concertRepository.findConcertPage(pageable);
+    public Page<ConcertListResponse> findPage(Pageable pageable) {
+        return concertRepository.findConcertPage(pageable)
+                .map(ConcertListResponse::from);
     }
 
-    public ConcertDetailResponse findDetail(int concertId) {
+    public ConcertListResponse findDetail(int concertId) {
         Concert concert = concertRepository.findByConcertId(concertId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Concert not found."
                 ));
-        return ConcertDetailResponse.from(concert);
+        return ConcertListResponse.from(concert);
     }
 }
