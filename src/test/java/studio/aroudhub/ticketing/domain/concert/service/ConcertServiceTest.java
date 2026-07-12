@@ -6,7 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,8 +55,8 @@ class ConcertServiceTest {
         when(concert.getCreatedAt()).thenReturn("2026-06-01");
         when(venue.getName()).thenReturn("Maple Theater");
         when(concert.getRunning_time()).thenReturn(120);
-        when(concert.getStartDate()).thenReturn(LocalDateTime.of(2026, 7, 1, 19, 30));
-        when(concert.getEndDate()).thenReturn(LocalDateTime.of(2026, 7, 10, 19, 30));
+        when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 7, 1));
+        when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 7, 10));
         when(concert.getAge_rating()).thenReturn("12+");
         when(concert.getPrice()).thenReturn(price);
         when(concert.getDate()).thenReturn(date);
@@ -100,8 +99,8 @@ class ConcertServiceTest {
         when(concert.getBookingCnt()).thenReturn(312);
         when(concert.getCreatedAt()).thenReturn("2026-08-01");
         when(concert.getRunning_time()).thenReturn(150);
-        when(concert.getStartDate()).thenReturn(LocalDateTime.of(2026, 9, 3, 20, 0));
-        when(concert.getEndDate()).thenReturn(LocalDateTime.of(2026, 9, 7, 20, 0));
+        when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 9, 3));
+        when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 9, 7));
         when(concert.getAge_rating()).thenReturn("12+");
         when(concert.getPrice()).thenReturn(price);
         when(concert.getDate()).thenReturn(date);
