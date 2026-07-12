@@ -26,9 +26,27 @@
 ## Testing Rules
 
 - Use `testWithoutDB` for tests that do not require a real database.
+- Write a failing test first before changing production code.
+- Do not add or change production code until the missing behavior is demonstrated by a failing test.
+- After making the test pass, refactor only while keeping the test suite green.
+- For bug fixes, add a regression test that reproduces the bug before implementing the fix.
+- Prefer the smallest reasonable test scope first: unit test, then web-layer test, then broader integration test only when necessary.
+- Service-layer business logic should be covered by focused unit tests before considering broader Spring-based tests.
 - Web-layer tests that do not need DB access should explicitly run with `@ActiveProfiles("testWithoutDB")`, especially for `@WebMvcTest`-based tests.
+- Controller behavior should be covered with web-layer tests that verify request mapping, validation, response status, and response body shape.
 - If a web-layer test intentionally omits `@ActiveProfiles("testWithoutDB")`, document why that test can run safely without database profile isolation.
+- New or changed exception flows should include tests for both the expected error status and the error payload or message contract when applicable.
+- When mocking collaborators, mock only true external dependencies or boundaries; do not mock the behavior of the class under test.
+- Avoid assertions that are tightly coupled to call counts, internal private flow, or incidental implementation details unless that interaction is the behavior being specified.
+- When adding a new endpoint or service method, cover at least one happy path and one meaningful failure path.
+- Prefer behavior-focused assertions over assertions tied to internal implementation details.
+- Each feature change should include automated tests for the main success path and relevant failure or edge cases.
+- Do not use database-enabled profiles or wider Spring test slices when the scenario can be covered with `testWithoutDB` or a narrower test.
+- Do not use `@SpringBootTest` when a narrower test such as a plain unit test or `@WebMvcTest` is sufficient.
 - Auth tests that depend on database-enabled auth beans should use a database-enabled profile and mock their collaborators when appropriate.
+- If a repository-backed flow truly requires a database-enabled profile, keep the covered scenario narrow and document why `testWithoutDB` is insufficient.
+- Do not merge or finish a change with only manual verification when the behavior can reasonably be covered by an automated test.
+- Before finishing work, run the relevant tests for the changed behavior and report what was executed.
 
 ## Docs Rules
 
