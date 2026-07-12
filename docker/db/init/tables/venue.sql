@@ -1,7 +1,10 @@
 INSERT INTO venue (venue_id, name, address)
 VALUES
-    (1, 'Olympic Hall', '424 Olympic-ro, Songpa-gu, Seoul'),
-    (2, 'Jamsil Indoor Stadium', '25 Olympic-ro, Songpa-gu, Seoul')
+    (1, '대전 컨벤션센터 제1전시장', '대전 유성구 엑스포로 107 , 1층'),
+    (2, 'LG아트센터 서울 LG SIGNATURE 홀', '서울 강서구 마곡중앙로 136 LG아트센터 서울'),
+    (3, '수원월드컵경기장 보조경기장', '경기 수원시 팔달구 우만동'),
+    (4, 'KSPO DOME', '서울 송파구 올림픽로 424'),
+    (5, '일산 킨텍스 제1전시장 1홀', '경기도 고양시 일산서구 킨텍스로 217-60 킨텍스')
 ON CONFLICT (venue_id) DO UPDATE
 SET
     name = EXCLUDED.name,
