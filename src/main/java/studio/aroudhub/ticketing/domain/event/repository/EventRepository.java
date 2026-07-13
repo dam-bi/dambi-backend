@@ -19,4 +19,32 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             join e.concert c
             """)
     List<EventList> findAllEventLists();
+
+    @Query("""
+            select new studio.aroudhub.ticketing.domain.event.repository.EventWithConcertView(
+                e.eventId,
+                c.title,
+                e.description,
+                e.status,
+                e.startDate,
+                e.endDate,
+                c.concertId,
+                c.title,
+                c.imgUrl,
+                c.description,
+                c.bookingCnt,
+                c.createdAt,
+                v.name,
+                e.runningTime,
+                e.startDate,
+                e.endDate,
+                e.ageRating,
+                e.price,
+                e.date
+            )
+            from Event e
+            join e.concert c
+            join c.venue v
+            """)
+    List<EventWithConcertResponse> findAllEventWithConcertViews();
 }

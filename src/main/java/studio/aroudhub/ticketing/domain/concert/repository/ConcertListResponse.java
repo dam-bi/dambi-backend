@@ -46,10 +46,10 @@ public record ConcertListResponse(
                 concert.getBookingCnt(),
                 concert.getCreatedAt(),
                 concert.getVenue().getName(),
-                concert.getRunning_time(),
+                concert.getRunningTime(),
                 concert.getStartDate(),
                 concert.getEndDate(),
-                concert.getAge_rating(),
+                concert.getAgeRating(),
                 concert.getPrice().stream()
                         .map(PriceItem::from)
                         .collect(Collectors.toList()),

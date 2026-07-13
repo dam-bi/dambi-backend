@@ -51,7 +51,9 @@ CREATE TABLE IF NOT EXISTS event (
     concert_id INTEGER NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
-    status VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(255) NOT NULL
     CONSTRAINT fk_event_concert
         FOREIGN KEY (concert_id) REFERENCES concert (concert_id)
 );

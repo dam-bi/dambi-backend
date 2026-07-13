@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import studio.aroudhub.ticketing.domain.event.repository.EventList;
+import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
 import studio.aroudhub.ticketing.domain.event.service.EventService;
 
 @RestController
@@ -18,7 +18,8 @@ public class EventController {
     }
 
     @GetMapping
-    public List<EventList> eventMain() {
-        return eventService.findAll();
+    // /api/events 동작
+    public List<EventWithConcertResponse> eventMain() {
+        return eventService.findAllWithConcert();
     }
 }

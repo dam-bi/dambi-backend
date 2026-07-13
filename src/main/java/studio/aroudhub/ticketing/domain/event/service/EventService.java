@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import studio.aroudhub.ticketing.domain.event.repository.EventList;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
+import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
 
 @Service
 public class EventService {
@@ -14,7 +15,14 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
+
+    // SELECT * FROM event;
     public List<EventList> findAll() {
         return eventRepository.findAllEventLists();
+    }
+
+    //  구현해야할 사항: SELECT * FROM event JOIN event.concert_id = concert.concert_id;
+    public List<EventWithConcertResponse> findAllWithConcert() {
+        return eventRepository.findAllEventWithConcertViews();
     }
 }

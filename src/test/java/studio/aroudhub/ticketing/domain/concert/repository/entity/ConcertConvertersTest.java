@@ -3,6 +3,7 @@ package studio.aroudhub.ticketing.domain.concert.repository.entity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import studio.aroudhub.ticketing.domain.concert.repository.ScheduleShowListConverter;
 
 import java.time.LocalTime;
 import java.util.List;

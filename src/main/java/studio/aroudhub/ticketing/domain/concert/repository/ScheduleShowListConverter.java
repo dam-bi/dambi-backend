@@ -1,4 +1,4 @@
-package studio.aroudhub.ticketing.domain.concert.repository.entity;
+package studio.aroudhub.ticketing.domain.concert.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.ScheduleShowTime;
 
 import java.io.IOException;
 import java.time.LocalTime;
