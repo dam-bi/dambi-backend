@@ -1,16 +1,16 @@
 package studio.aroudhub.ticketing.domain.event.service;
 
-import static java.util.Calendar.DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Constructor;
-import java.time.LocalDate;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
+import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventList;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
@@ -19,13 +19,14 @@ import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 class EventServiceTest {
 
     @Test
-    void findAll_returnsRepositoryEventLists() {
+    void findAll_returnsRepositoryEventLists() throws Exception {
         EventRepository eventRepository = mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
+        Concert concert = createConcert();
         List<EventList> expected = List.of(
                 new EventList(
                         7,
-                        33,
+                        concert,
                         "Summer package",
                         "Bundle promotion for weekend bookings",
                         LocalDate.of(2026, 7, 5),
@@ -42,14 +43,14 @@ class EventServiceTest {
     }
 
     @Test
-    void findAllWithConcert_returnsRepositoryEventWithConcertViews() throws Exception {
+    void findAllWithConcert_returnsRepositoryEventWithConcertViews() {
         EventRepository eventRepository = mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
-        Concert concert = createConcert();
+        ConcertResponse concert = createConcertResponse();
         List<EventWithConcertResponse> expected = List.of(
                 new EventWithConcertResponse(
                         7,
-                        "Summer package",
+                        "Summer Concert Event",
                         "Bundle promotion for weekend bookings",
                         "SCHEDULED",
                         LocalDate.of(2026, 8, 1),
@@ -58,12 +59,25 @@ class EventServiceTest {
                 )
         );
 
-
         when(eventRepository.findAllEventWithConcertViews()).thenReturn(expected);
 
         List<EventWithConcertResponse> result = eventService.findAllWithConcert();
 
         assertThat(result).isEqualTo(expected);
+    }
+
+    private ConcertResponse createConcertResponse() {
+        return new ConcertResponse(
+                33,
+                "Summer Concert",
+                "https://cdn.example.com/summer.png",
+                "Outdoor summer performance",
+                "Jamsil Arena",
+                180,
+                LocalDate.of(2026, 8, 1),
+                LocalDate.of(2026, 8, 3),
+                "15+"
+        );
     }
 
     private Concert createConcert() throws Exception {
