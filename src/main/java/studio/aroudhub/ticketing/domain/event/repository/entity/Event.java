@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Table(name = "event")
@@ -24,4 +26,13 @@ public class Event {
     @Column(name = "description", nullable = false, length = 255)
     private String description;
 
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
+
+    // status: 예정, 진행중, 종료
+    @Column(name = "status", nullable = false, length = 255)
+    private String status;
 }

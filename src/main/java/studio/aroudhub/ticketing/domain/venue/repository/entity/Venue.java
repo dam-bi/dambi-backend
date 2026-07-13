@@ -1,5 +1,7 @@
 package studio.aroudhub.ticketing.domain.venue.repository.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +13,8 @@ import lombok.Getter;
 @Entity
 @Getter
 @Table(name = "venue")
+@JsonDeserialize(using = VenueJsonDeserializer.class)
+@JsonSerialize(using = VenueJsonSerializer.class)
 public class Venue {
 
     @Id

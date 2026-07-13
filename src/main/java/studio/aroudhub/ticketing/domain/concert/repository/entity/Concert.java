@@ -1,5 +1,6 @@
 package studio.aroudhub.ticketing.domain.concert.repository.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,42 +25,55 @@ public class Concert {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concert_id")
+    @JsonProperty("concertId")
     private int concertId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
+    @JsonProperty("venue")
     private Venue venue;
 
     @Column(name = "title", nullable = false)
+    @JsonProperty("title")
     private String title;
 
     @Column(name = "img_url", length = 255)
+    @JsonProperty("imgUrl")
     private String imgUrl;
 
     @Column(name = "description")
+    @JsonProperty("description")
     private String description;
 
     @Column(name = "booking_cnt", nullable = false)
+    @JsonProperty("bookingCnt")
     private int bookingCnt;
 
     @Column(name = "created_at", nullable = false)
+    @JsonProperty("createdAt")
     private String createdAt;
 
     @Column(name = "running_time")
-    private int running_time;
+    @JsonProperty("runningTime")
+    private int runningTime;
 
     @Column(name = "start_date", nullable = false)
+    @JsonProperty("startDate")
     private LocalDate startDate;
 
     @Column(name = "end_date", nullable = false)
+    @JsonProperty("endDate")
     private LocalDate endDate;
 
     @Column(name = "age_rating", nullable = false)
-    private String age_rating;
+    @JsonProperty("ageRating")
+    private String ageRating;
 
     @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
+    @JsonProperty("price")
     private List<ConcertPrice> price;
 
     @OneToMany(mappedBy = "concert", fetch = FetchType.LAZY)
+    @JsonProperty("date")
     private List<ConcertSchedule> date;
 }
