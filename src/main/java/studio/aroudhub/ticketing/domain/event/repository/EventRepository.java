@@ -10,9 +10,11 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     @Query("""
             select new studio.aroudhub.ticketing.domain.event.repository.EventList(
                 e.eventId,
-                c.concertId,
+                e.concert,
                 e.title,
-                e.description, 
+                e.description,
+                e.startDate,
+                e.endDate,
                 e.status
             )
             from Event e
@@ -21,26 +23,24 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     List<EventList> findAllEventLists();
 
     @Query("""
-            select new studio.aroudhub.ticketing.domain.event.repository.EventWithConcertView(
+            select new studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse(
                 e.eventId,
-                c.title,
+                e.title,
                 e.description,
                 e.status,
                 e.startDate,
                 e.endDate,
-                c.concertId,
-                c.title,
-                c.imgUrl,
-                c.description,
-                c.bookingCnt,
-                c.createdAt,
-                v.name,
-                e.runningTime,
-                e.startDate,
-                e.endDate,
-                e.ageRating,
-                e.price,
-                e.date
+                new studio.aroudhub.ticketing.domain.event.repository.ConcertResponse(
+                    c.concertId,
+                    c.title,
+                    c.imgUrl,
+                    c.description,
+                    v.name,
+                    c.runningTime,
+                    c.startDate,
+                    c.endDate,
+                    c.ageRating
+                )
             )
             from Event e
             join e.concert c

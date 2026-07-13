@@ -1,12 +1,12 @@
 package studio.aroudhub.ticketing.domain.event.repository;
 
-import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
-
 import java.time.LocalDate;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
+import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
 
 public record EventList(
         int eventId,
-        int concertId,
+        Concert concert,
         String title,
         String description,
         LocalDate startDate,
@@ -16,7 +16,7 @@ public record EventList(
     public static EventList from(Event event) {
         return new EventList(
                 event.getEventId(),
-                event.getConcert().getConcertId(),
+                event.getConcert(),
                 event.getTitle(),
                 event.getDescription(),
                 event.getStartDate(),

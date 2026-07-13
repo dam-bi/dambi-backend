@@ -21,7 +21,7 @@ public class EventService {
         return eventRepository.findAllEventLists();
     }
 
-    //  구현해야할 사항: SELECT * FROM event JOIN event.concert_id = concert.concert_id;
+    //   SELECT * FROM event JOIN event.concert_id = concert.concert_id;
     public List<EventWithConcertResponse> findAllWithConcert() {
         return eventRepository.findAllEventWithConcertViews();
     }

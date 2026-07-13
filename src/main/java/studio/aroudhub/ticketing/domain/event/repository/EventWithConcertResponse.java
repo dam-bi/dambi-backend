@@ -1,26 +1,27 @@
 package studio.aroudhub.ticketing.domain.event.repository;
 
-import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
+import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
 
 import java.time.LocalDate;
 
 public record EventWithConcertResponse(
         int eventId,
-        String title,
-        String description,
+        String eventTitle,
+        String eventDesc,
         String status,
-        LocalDate startDate,
-        LocalDate endDate,
-        // int concertId,
-        Concert concert
-        /*
-        String concertTitle,
-        String concertImgUrl,
-        LocalDate concertStartDate,
-        LocalDate concertEndDate,
-        String venueName,
-        String title,
-        String description
-         */
+        LocalDate eventStartDate,
+        LocalDate eventEndDate,
+        ConcertResponse concert
 ) {
+    public static EventWithConcertResponse from(Event event){
+        return new EventWithConcertResponse(
+                event.getEventId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getStatus(),
+                event.getStartDate(),
+                event.getEndDate(),
+                ConcertResponse.from(event.getConcert())
+        );
+    }
 }
