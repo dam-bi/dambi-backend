@@ -50,7 +50,7 @@ public class Concert {
 
     @Column(name = "created_at", nullable = false)
     //@JsonProperty("createdAt")
-    private String createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "running_time")
     //@JsonProperty("runningTime")
