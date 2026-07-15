@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
@@ -26,12 +27,12 @@ public class ConcertService {
     }
 
     @Transactional(readOnly = true)
-    public ConcertListResponse findDetail(int concertId) {
+    public ConcertDetailResponse findDetail(int concertId) {
         Concert concert = concertRepository.findByConcertId(concertId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Concert not found."
                 ));
-        return ConcertListResponse.from(concert);
+        return ConcertDetailResponse.from(concert);
     }
 }

@@ -1,4 +1,4 @@
-package studio.aroudhub.ticketing.domain.event.repository;
+package studio.aroudhub.ticketing.domain.concert.repository.DTO.response;
 
 public record SeatResponse(
         String rating,

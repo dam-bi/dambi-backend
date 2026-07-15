@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.service.ConcertService;
 
 @RestController
@@ -24,6 +25,7 @@ public class ConcertController {
 
     @GetMapping
     // 페이지 번호와 크기를 받아 콘서트 목록을 페이징 조회한다.
+    // /api/concerts
     public Page<ConcertListResponse> getConcerts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -34,8 +36,8 @@ public class ConcertController {
 
     @GetMapping("/{concertId}")
     // 콘서트 ID로 특정 콘서트의 상세 정보를 조회한다.
-    // 예시: /api/concerts/2
-    public ConcertListResponse getConcert(
+    // /api/concerts/2
+    public ConcertDetailResponse getConcertDetail(
             @PathVariable int concertId
     ) {
         return concertService.findDetail(concertId);

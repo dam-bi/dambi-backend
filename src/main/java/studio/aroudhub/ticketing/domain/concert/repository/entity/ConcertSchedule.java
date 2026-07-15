@@ -26,7 +26,7 @@ public class ConcertSchedule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concert_schedule_id")
     // db.json에서 id로 표현.
-    @JsonProperty("id")
+    // @JsonProperty("id")
     private int concertScheduleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,6 +39,6 @@ public class ConcertSchedule {
 
     @Convert(converter = ScheduleShowListConverter.class)
     @Column(name = "show_list", columnDefinition = "json", nullable = false)
-    @JsonProperty("showList")
-    private List<ScheduleShowTime> showList;
+    //@JsonProperty("showList")
+    private List<ShowList> showList;
 }

@@ -15,12 +15,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.concert.TestEntityFactory;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertPrice;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertSchedule;
-import studio.aroudhub.ticketing.domain.concert.repository.entity.ScheduleShowTime;
+import studio.aroudhub.ticketing.domain.concert.repository.entity.ShowList;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 class ConcertServiceTest {
@@ -39,7 +40,7 @@ class ConcertServiceTest {
                 TestEntityFactory.createConcertSchedule(
                         1,
                         LocalDate.of(2026, 7, 1),
-                        List.of(new ScheduleShowTime(1, LocalTime.of(19, 30)))
+                        List.of(TestEntityFactory.createShowList(1, LocalTime.of(19, 30)))
                 )
         );
         Page<Concert> repositoryPage = new PageImpl<>(List.of(concert));
@@ -47,28 +48,21 @@ class ConcertServiceTest {
         when(concertRepository.findConcertPage(pageable)).thenReturn(repositoryPage);
         when(concert.getConcertId()).thenReturn(10);
         when(concert.getVenue()).thenReturn(venue);
-        when(venue.getVenueId()).thenReturn(4);
         when(concert.getTitle()).thenReturn("River Strings");
         when(concert.getImgUrl()).thenReturn("https://cdn.example.com/river-strings.jpg");
-        when(concert.getDescription()).thenReturn("Open air string concert");
         when(concert.getBookingCnt()).thenReturn(201);
-        when(concert.getCreatedAt()).thenReturn("2026-06-01");
         when(venue.getName()).thenReturn("Maple Theater");
-        when(concert.getRunningTime()).thenReturn(120);
         when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 7, 1));
         when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 7, 10));
-        when(concert.getAgeRating()).thenReturn("12+");
-        when(concert.getPrice()).thenReturn(price);
-        when(concert.getDate()).thenReturn(date);
 
         Page<ConcertListResponse> result = concertService.findPage(pageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).concertId()).isEqualTo(10);
-        assertThat(result.getContent().get(0).venueId()).isEqualTo(4);
-        assertThat(result.getContent().get(0).title()).isEqualTo("River Strings");
-        assertThat(result.getContent().get(0).price().get(0).price()).isEqualTo(88000);
-        assertThat(result.getContent().get(0).date().get(0).showList().get(0).time()).isEqualTo("19:30");
+        assertThat(result.getContent().get(0).concertTitle()).isEqualTo("River Strings");
+        assertThat(result.getContent().get(0).venue()).isEqualTo("Maple Theater");
+        assertThat(result.getContent().get(0).concertStartDate()).isEqualTo(LocalDate.of(2026, 7, 1));
+        assertThat(result.getContent().get(0).concertEndDate()).isEqualTo(LocalDate.of(2026, 7, 10));
     }
 
     @Test
@@ -84,7 +78,7 @@ class ConcertServiceTest {
                 TestEntityFactory.createConcertSchedule(
                         1,
                         LocalDate.of(2026, 9, 3),
-                        List.of(new ScheduleShowTime(1, LocalTime.of(20, 0)))
+                        List.of(TestEntityFactory.createShowList(1, LocalTime.of(20, 0)))
                 )
         );
 
@@ -94,26 +88,23 @@ class ConcertServiceTest {
         when(concert.getDescription()).thenReturn("Arena performance");
         when(concert.getImgUrl()).thenReturn("https://cdn.example.com/friday-lights.jpg");
         when(concert.getVenue()).thenReturn(venue);
-        when(venue.getVenueId()).thenReturn(9);
         when(venue.getName()).thenReturn("North Arena");
         when(concert.getBookingCnt()).thenReturn(312);
-        when(concert.getCreatedAt()).thenReturn("2026-08-01");
-        when(concert.getRunningTime()).thenReturn(150);
         when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 9, 3));
         when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 9, 7));
         when(concert.getAgeRating()).thenReturn("12+");
         when(concert.getPrice()).thenReturn(price);
         when(concert.getDate()).thenReturn(date);
 
-        ConcertListResponse result = concertService.findDetail(44);
+        ConcertDetailResponse result = concertService.findDetail(44);
 
         assertThat(result.concertId()).isEqualTo(44);
-        assertThat(result.title()).isEqualTo("Friday Lights");
+        assertThat(result.concertTitle()).isEqualTo("Friday Lights");
         assertThat(result.venue()).isEqualTo("North Arena");
-        assertThat(result.price()).hasSize(1);
-        assertThat(result.price().get(0).price()).isEqualTo(121000);
-        assertThat(result.date()).hasSize(1);
-        assertThat(result.date().get(0).showList().get(0).time()).isEqualTo("20:00");
+        assertThat(result.seatList()).hasSize(1);
+        assertThat(result.seatList().get(0).price()).isEqualTo(121000);
+        assertThat(result.schedule()).hasSize(1);
+        assertThat(result.schedule().get(0).showList().get(0).time()).isEqualTo(LocalTime.of(20, 0));
     }
 
     @Test

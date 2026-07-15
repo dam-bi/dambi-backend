@@ -18,9 +18,9 @@ class ConcertConvertersTest {
 
     @Test
     void scheduleShowListConverter_serializesScheduleShowTimesToJsonArray() throws Exception {
-        List<ScheduleShowTime> showTimes = List.of(
-                new ScheduleShowTime(1, LocalTime.of(13, 0)),
-                new ScheduleShowTime(2, LocalTime.of(18, 0))
+        List<ShowList> showTimes = List.of(
+                new ShowList(1, LocalTime.of(13, 0)),
+                new ShowList(2, LocalTime.of(18, 0))
         );
 
         String json = scheduleShowListConverter.convertToDatabaseColumn(showTimes);
@@ -42,15 +42,13 @@ class ConcertConvertersTest {
                 ]
                 """;
 
-        List<ScheduleShowTime> result = scheduleShowListConverter.convertToEntityAttribute(json);
+        List<ShowList> result = scheduleShowListConverter.convertToEntityAttribute(json);
 
-        assertEquals(
-                List.of(
-                        new ScheduleShowTime(1, LocalTime.of(13, 0)),
-                        new ScheduleShowTime(2, LocalTime.of(20, 0))
-                ),
-                result
-        );
+        assertEquals(2, result.size());
+        assertEquals(1, result.get(0).getId());
+        assertEquals(LocalTime.of(13, 0), result.get(0).getTime());
+        assertEquals(2, result.get(1).getId());
+        assertEquals(LocalTime.of(20, 0), result.get(1).getTime());
     }
 
     @Test
@@ -61,21 +59,21 @@ class ConcertConvertersTest {
                 ]
                 """;
 
-        List<ScheduleShowTime> result = scheduleShowListConverter.convertToEntityAttribute(json);
+        List<ShowList> result = scheduleShowListConverter.convertToEntityAttribute(json);
 
-        assertEquals(ScheduleShowTime.class, result.get(0).getClass());
+        assertEquals(ShowList.class, result.get(0).getClass());
     }
 
     @Test
     void scheduleShowListConverter_returnsEmptyListForNullJson() {
-        List<ScheduleShowTime> result = scheduleShowListConverter.convertToEntityAttribute(null);
+        List<ShowList> result = scheduleShowListConverter.convertToEntityAttribute(null);
 
         assertTrue(result.isEmpty());
     }
 
     @Test
     void scheduleShowListConverter_returnsEmptyListForBlankJson() {
-        List<ScheduleShowTime> result = scheduleShowListConverter.convertToEntityAttribute("   ");
+        List<ShowList> result = scheduleShowListConverter.convertToEntityAttribute("   ");
 
         assertTrue(result.isEmpty());
     }
