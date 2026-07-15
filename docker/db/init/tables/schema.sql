@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS concert (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     booking_cnt INTEGER NOT NULL,
-    created_at VARCHAR(255) NOT NULL,
+    created_at DATE NOT NULL,
     running_time INTEGER,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
