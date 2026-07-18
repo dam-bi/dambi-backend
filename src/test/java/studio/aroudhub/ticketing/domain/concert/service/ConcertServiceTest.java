@@ -15,13 +15,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.concert.TestEntityFactory;
+import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertPrice;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.ConcertSchedule;
-import studio.aroudhub.ticketing.domain.concert.repository.entity.ShowList;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 class ConcertServiceTest {
@@ -31,29 +30,18 @@ class ConcertServiceTest {
         ConcertRepository concertRepository = mock(ConcertRepository.class);
         ConcertService concertService = new ConcertService(concertRepository);
         PageRequest pageable = PageRequest.of(0, 12);
-        Concert concert = mock(Concert.class);
-        Venue venue = mock(Venue.class);
-        List<ConcertPrice> price = List.of(
-                TestEntityFactory.createConcertPrice(1, "VIP", 88000)
+        ConcertListResponse concert = new ConcertListResponse(
+                10,
+                "River Strings",
+                "https://cdn.example.com/river-strings.jpg",
+                201,
+                "Maple Theater",
+                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 10)
         );
-        List<ConcertSchedule> date = List.of(
-                TestEntityFactory.createConcertSchedule(
-                        1,
-                        LocalDate.of(2026, 7, 1),
-                        List.of(TestEntityFactory.createShowList(1, LocalTime.of(19, 30)))
-                )
-        );
-        Page<Concert> repositoryPage = new PageImpl<>(List.of(concert));
+        Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of(concert));
 
         when(concertRepository.findConcertPage(pageable)).thenReturn(repositoryPage);
-        when(concert.getConcertId()).thenReturn(10);
-        when(concert.getVenue()).thenReturn(venue);
-        when(concert.getTitle()).thenReturn("River Strings");
-        when(concert.getImgUrl()).thenReturn("https://cdn.example.com/river-strings.jpg");
-        when(concert.getBookingCnt()).thenReturn(201);
-        when(venue.getName()).thenReturn("Maple Theater");
-        when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 7, 1));
-        when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 7, 10));
 
         Page<ConcertListResponse> result = concertService.findPage(pageable);
 

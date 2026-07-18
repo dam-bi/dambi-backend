@@ -12,6 +12,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
@@ -30,7 +31,6 @@ class ConcertRepositoryTest {
 
     @Test
     void findByConcertId_returnsConcertWhenItExists() {
-        // 저장된 concert_id로 조회하면 해당 콘서트를 정상적으로 반환하는지 확인한다.
         Venue venue = createVenue("Olympic Hall", "123 Seoul Street");
         entityManager.persist(venue);
 
@@ -59,19 +59,17 @@ class ConcertRepositoryTest {
 
     @Test
     void findByConcertId_returnsEmptyWhenConcertDoesNotExist() {
-        // 존재하지 않는 concert_id로 조회하면 빈 결과를 반환하는지 확인한다.
         var result = concertRepository.findByConcertId(99999);
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    void findConcertPage_returnsConcertPageWithoutMultipleBagFetchException() {
-        // 현재 목록 조회는 price와 date 두 개의 bag 컬렉션을 함께 fetch 하므로 예외가 발생하는지 확인한다.
+    void findConcertPage_returnsConcertListResponsesOrderedByBookingCountDesc() {
         Venue venue = createVenue("Blue Square", "45 Gangnam-daero");
         entityManager.persist(venue);
 
-        Concert concert = createConcert(
+        Concert lowerBookingConcert = createConcert(
                 venue,
                 "Late Night Rock",
                 "https://cdn.example.com/late-night-rock.jpg",
@@ -83,14 +81,31 @@ class ConcertRepositoryTest {
                 LocalDate.of(2026, 8, 2),
                 "15+"
         );
-        entityManager.persist(concert);
+        Concert higherBookingConcert = createConcert(
+                venue,
+                "Festival Headliner",
+                "https://cdn.example.com/festival-headliner.jpg",
+                "Main stage performance",
+                25,
+                "2026-06-03",
+                150,
+                LocalDate.of(2026, 8, 5),
+                LocalDate.of(2026, 8, 6),
+                "12+"
+        );
+        entityManager.persist(lowerBookingConcert);
+        entityManager.persist(higherBookingConcert);
         entityManager.flush();
         entityManager.clear();
 
-        Page<Concert> result = concertRepository.findConcertPage(PageRequest.of(0, 10));
+        Page<ConcertListResponse> result = concertRepository.findConcertPage(PageRequest.of(0, 10));
 
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("Late Night Rock");
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).concertTitle()).isEqualTo("Festival Headliner");
+        assertThat(result.getContent().get(0).bookingCnt()).isEqualTo(25);
+        assertThat(result.getContent().get(0).venue()).isEqualTo("Blue Square");
+        assertThat(result.getContent().get(1).concertTitle()).isEqualTo("Late Night Rock");
+        assertThat(result.getContent().get(1).bookingCnt()).isEqualTo(11);
     }
 
     private Venue createVenue(String name, String address) {

@@ -21,12 +21,13 @@ public class ConcertService {
     }
 
     @Transactional(readOnly = true)
+    // concert 테이블 조회범위: 전체. 조회 컬럼: 일부
     public Page<ConcertListResponse> findPage(Pageable pageable) {
-        return concertRepository.findConcertPage(pageable)
-                .map(ConcertListResponse::from);
+        return concertRepository.findConcertPage(pageable);
     }
 
     @Transactional(readOnly = true)
+    // concert 테이블의 특정 concertId 조회
     public ConcertDetailResponse findDetail(int concertId) {
         Concert concert = concertRepository.findByConcertId(concertId)
                 .orElseThrow(() -> new ResponseStatusException(
