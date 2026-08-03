@@ -15,7 +15,6 @@ import lombok.Getter;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -52,7 +51,7 @@ public class Concert {
 
     @Column(name = "created_at", nullable = false)
     @JsonProperty("createdAt")
-    private String createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "running_time")
     @JsonProperty("runningTime")

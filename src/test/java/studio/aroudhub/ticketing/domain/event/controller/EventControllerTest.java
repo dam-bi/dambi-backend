@@ -1,5 +1,6 @@
 package studio.aroudhub.ticketing.domain.event.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,15 +13,20 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
+import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.service.EventService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
@@ -37,58 +43,39 @@ class EventControllerTest {
     private EventService eventService;
 
     @Test
-    void getEvents_returnsEventWithConcertResponseAsJson() throws Exception {
-        List<EventWithConcertResponse> fakeEvents = List.of(
-                new EventWithConcertResponse(
+    void getEvents_returnsPagedEventListResponseAsJson() throws Exception {
+        Page<EventListResponse> fakeEvents = new PageImpl<>(List.of(
+                new EventListResponse(
                         1,
                         "Early bird discount",
-                        "Discount event for early reservations",
+                        "https://cdn.example.com/concerts/101.png",
                         "SCHEDULED",
                         LocalDate.of(2026, 7, 5),
-                        LocalDate.of(2026, 7, 31),
-                        new ConcertResponse(
-                                101,
-                                "Summer Festival",
-                                "https://cdn.example.com/concerts/101.png",
-                                "Three day festival",
-                                "Olympic Hall",
-                                120,
-                                LocalDate.of(2026, 7, 20),
-                                LocalDate.of(2026, 7, 22),
-                                "15+"
-                        )
+                        LocalDate.of(2026, 7, 31)
                 )
-        );
+        ));
 
-        when(eventService.findAllWithConcert()).thenReturn(fakeEvents);
+        when(eventService.findPage(any())).thenReturn(fakeEvents);
 
+        // Page 응답은 content 배열 아래에 실제 목록이 직렬화된다.
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].eventId").value(1))
-                .andExpect(jsonPath("$[0].eventTitle").value("Early bird discount"))
-                .andExpect(jsonPath("$[0].eventDesc").value("Discount event for early reservations"))
-                .andExpect(jsonPath("$[0].status").value("SCHEDULED"))
-                .andExpect(jsonPath("$[0].eventStartDate").value("2026-07-05"))
-                .andExpect(jsonPath("$[0].eventEndDate").value("2026-07-31"))
-                .andExpect(jsonPath("$[0].concert.concertId").value(101))
-                .andExpect(jsonPath("$[0].concert.concertTitle").value("Summer Festival"))
-                .andExpect(jsonPath("$[0].concert.imgUrl").value("https://cdn.example.com/concerts/101.png"))
-                .andExpect(jsonPath("$[0].concert.concertDesc").value("Three day festival"))
-                .andExpect(jsonPath("$[0].concert.venue").value("Olympic Hall"))
-                .andExpect(jsonPath("$[0].concert.runningTime").value(120))
-                .andExpect(jsonPath("$[0].concert.concertStartDate").value("2026-07-20"))
-                .andExpect(jsonPath("$[0].concert.concertEndDate").value("2026-07-22"))
-                .andExpect(jsonPath("$[0].concert.ageRating").value("15+"));
+                .andExpect(jsonPath("$.content[0].eventId").value(1))
+                .andExpect(jsonPath("$.content[0].eventTitle").value("Early bird discount"))
+                .andExpect(jsonPath("$.content[0].concertImg").value("https://cdn.example.com/concerts/101.png"))
+                .andExpect(jsonPath("$.content[0].status").value("SCHEDULED"))
+                .andExpect(jsonPath("$.content[0].eventStartDate").value("2026-07-05"))
+                .andExpect(jsonPath("$.content[0].eventEndDate").value("2026-07-31"));
 
-        verify(eventService).findAllWithConcert();
+        verify(eventService).findPage(any());
     }
 
     @Test
     void getEvents_returnsBadRequestJsonWhenServiceThrowsIllegalArgumentException() throws Exception {
         doThrow(new IllegalArgumentException("Event lookup failed."))
                 .when(eventService)
-                .findAllWithConcert();
+                .findPage(any());
 
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isBadRequest())
@@ -96,6 +83,63 @@ class EventControllerTest {
                 .andExpect(jsonPath("$.isSuccess").value(false))
                 .andExpect(jsonPath("$.message").value("Event lookup failed."));
 
-        verify(eventService).findAllWithConcert();
+        verify(eventService).findPage(any());
+    }
+
+    @Test
+    void getEventDetail_returnsEventDetailResponseAsJson() throws Exception {
+        EventDetailResponse detail = new EventDetailResponse(
+                2,
+                "Opening Week Event",
+                "Special benefits for the first week",
+                "SCHEDULED",
+                LocalDate.of(2026, 8, 1),
+                LocalDate.of(2026, 8, 7),
+                new ConcertResponse(
+                        101,
+                        "Summer Festival",
+                        "https://cdn.example.com/concerts/101.png",
+                        "Three day festival",
+                        "Olympic Hall",
+                        120,
+                        LocalDate.of(2026, 7, 20),
+                        LocalDate.of(2026, 7, 22),
+                        "15+"
+                )
+        );
+
+        when(eventService.findDetail(2)).thenReturn(detail);
+
+        mockMvc.perform(get("/api/events/2"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.eventId").value(2))
+                .andExpect(jsonPath("$.eventTitle").value("Opening Week Event"))
+                .andExpect(jsonPath("$.eventDesc").value("Special benefits for the first week"))
+                .andExpect(jsonPath("$.status").value("SCHEDULED"))
+                .andExpect(jsonPath("$.eventStartDate").value("2026-08-01"))
+                .andExpect(jsonPath("$.eventEndDate").value("2026-08-07"))
+                .andExpect(jsonPath("$.concert.concertId").value(101))
+                .andExpect(jsonPath("$.concert.concertTitle").value("Summer Festival"))
+                .andExpect(jsonPath("$.concert.imgUrl").value("https://cdn.example.com/concerts/101.png"))
+                .andExpect(jsonPath("$.concert.concertDesc").value("Three day festival"))
+                .andExpect(jsonPath("$.concert.venue").value("Olympic Hall"))
+                .andExpect(jsonPath("$.concert.runningTime").value(120))
+                .andExpect(jsonPath("$.concert.concertStartDate").value("2026-07-20"))
+                .andExpect(jsonPath("$.concert.concertEndDate").value("2026-07-22"))
+                .andExpect(jsonPath("$.concert.ageRating").value("15+"));
+
+        verify(eventService).findDetail(2);
+    }
+
+    @Test
+    void getEventDetail_whenEventMissing_returnsNotFound() throws Exception {
+        when(eventService.findDetail(999))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+
+        mockMvc.perform(get("/api/events/999"))
+                .andExpect(status().isNotFound());
+
+        verify(eventService).findDetail(999);
     }
 }

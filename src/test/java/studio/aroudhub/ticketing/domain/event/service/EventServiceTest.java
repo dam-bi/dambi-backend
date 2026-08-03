@@ -1,112 +1,111 @@
 package studio.aroudhub.ticketing.domain.event.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventList;
+import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
-import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
-import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 class EventServiceTest {
 
     @Test
-    void findAll_returnsRepositoryEventLists() throws Exception {
+    void findPage_returnsRepositoryPage() {
         EventRepository eventRepository = mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
-        Concert concert = createConcert();
-        List<EventList> expected = List.of(
-                new EventList(
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<EventListResponse> expected = new PageImpl<>(List.of(
+                new EventListResponse(
                         7,
-                        concert,
                         "Summer package",
-                        "Bundle promotion for weekend bookings",
+                        "https://cdn.example.com/summer.png",
+                        "SCHEDULED",
                         LocalDate.of(2026, 7, 5),
-                        LocalDate.of(2026, 7, 31),
-                        "SCHEDULED"
+                        LocalDate.of(2026, 7, 31)
                 )
-        );
+        ));
 
-        when(eventRepository.findAllEventLists()).thenReturn(expected);
+        when(eventRepository.findEventPage(pageable)).thenReturn(expected);
 
-        List<EventList> result = eventService.findAll();
+        Page<EventListResponse> result = eventService.findPage(pageable);
 
         assertThat(result).isEqualTo(expected);
     }
 
     @Test
-    void findAllWithConcert_returnsRepositoryEventWithConcertViews() {
+    void findAllWithConcert_returnsRepositoryEventLists() {
         EventRepository eventRepository = mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
-        ConcertResponse concert = createConcertResponse();
-        List<EventWithConcertResponse> expected = List.of(
-                new EventWithConcertResponse(
+        List<EventListResponse> expected = List.of(
+                new EventListResponse(
                         7,
                         "Summer Concert Event",
-                        "Bundle promotion for weekend bookings",
+                        "https://cdn.example.com/summer.png",
                         "SCHEDULED",
                         LocalDate.of(2026, 8, 1),
-                        LocalDate.of(2026, 8, 31),
-                        concert
+                        LocalDate.of(2026, 8, 31)
                 )
         );
 
-        when(eventRepository.findAllEventWithConcertViews()).thenReturn(expected);
+        when(eventRepository.findEventList()).thenReturn(expected);
 
-        List<EventWithConcertResponse> result = eventService.findAllWithConcert();
+        List<EventListResponse> result = eventService.findAllWithConcert();
 
         assertThat(result).isEqualTo(expected);
     }
 
-    private ConcertResponse createConcertResponse() {
-        return new ConcertResponse(
-                33,
-                "Summer Concert",
-                "https://cdn.example.com/summer.png",
-                "Outdoor summer performance",
-                "Jamsil Arena",
-                180,
-                LocalDate.of(2026, 8, 1),
+    @Test
+    void findDetail_returnsRepositoryEventDetail() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        EventDetailResponse expected = new EventDetailResponse(
+                44,
+                "Summer Opening Event",
+                "Special benefits for opening week",
+                "SCHEDULED",
                 LocalDate.of(2026, 8, 3),
-                "15+"
+                LocalDate.of(2026, 8, 10),
+                new ConcertResponse(
+                        8,
+                        "Summer Lights",
+                        "https://cdn.example.com/summer-lights.png",
+                        "Open air night concert",
+                        "North Arena",
+                        120,
+                        LocalDate.of(2026, 8, 12),
+                        LocalDate.of(2026, 8, 14),
+                        "12+"
+                )
         );
+
+        when(eventRepository.findEventDetailByEventId(44)).thenReturn(Optional.of(expected));
+
+        EventDetailResponse result = eventService.findDetail(44);
+
+        assertThat(result).isEqualTo(expected);
     }
 
-    private Concert createConcert() throws Exception {
-        Concert concert = instantiate(Concert.class);
-        Venue venue = instantiate(Venue.class);
+    @Test
+    void findDetail_whenEventMissing_throwsNotFound() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
 
-        setField(venue, "venueId", 5);
-        setField(venue, "name", "Jamsil Arena");
-        setField(venue, "address", "Seoul");
+        when(eventRepository.findEventDetailByEventId(404)).thenReturn(Optional.empty());
 
-        setField(concert, "concertId", 33);
-        setField(concert, "venue", venue);
-        setField(concert, "title", "Summer Concert");
-        setField(concert, "imgUrl", "https://cdn.example.com/summer.png");
-        setField(concert, "startDate", LocalDate.of(2026, 8, 1));
-        setField(concert, "endDate", LocalDate.of(2026, 8, 3));
-
-        return concert;
-    }
-
-    private <T> T instantiate(Class<T> type) throws Exception {
-        Constructor<T> constructor = type.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        return constructor.newInstance();
-    }
-
-    private void setField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
+        assertThatThrownBy(() -> eventService.findDetail(404))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .hasToString("404 NOT_FOUND");
     }
 }

@@ -51,7 +51,7 @@ class EventApiIntegrationTest {
         setField(concert, "imgUrl", "https://cdn.example.com/concerts/101.png");
         setField(concert, "description", "Three day festival");
         setField(concert, "bookingCnt", 250);
-        setField(concert, "createdAt", "2026-07-01");
+        setField(concert, "createdAt", LocalDate.of(2026, 7, 1));
         setField(concert, "runningTime", 120);
         setField(concert, "startDate", LocalDate.of(2026, 7, 20));
         setField(concert, "endDate", LocalDate.of(2026, 7, 22));

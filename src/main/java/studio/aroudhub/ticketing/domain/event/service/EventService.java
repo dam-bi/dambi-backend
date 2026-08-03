@@ -1,10 +1,15 @@
 package studio.aroudhub.ticketing.domain.event.service;
 
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import studio.aroudhub.ticketing.domain.event.repository.EventList;
+import org.springframework.web.server.ResponseStatusException;
+import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
-import studio.aroudhub.ticketing.domain.event.repository.EventWithConcertResponse;
 
 @Service
 public class EventService {
@@ -15,14 +20,19 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-
-    // SELECT * FROM event;
-    public List<EventList> findAll() {
-        return eventRepository.findAllEventLists();
+    // eventID 기준 단건 조회.
+    public EventDetailResponse findDetail(int eventID){
+        return eventRepository.findEventDetailByEventId(eventID)
+                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event 목록을 찾을 수 없습니다."));
     }
 
-    //   SELECT * FROM event JOIN event.concert_id = concert.concert_id;
-    public List<EventWithConcertResponse> findAllWithConcert() {
-        return eventRepository.findAllEventWithConcertViews();
+    // 페이징
+    public Page<EventListResponse> findPage(Pageable pageable){
+        return eventRepository.findEventPage(pageable);
+    }
+
+    //   SELECT * FROM event JOIN ON event.concert_id = concert.concert_id;
+    public List<EventListResponse> findAllWithConcert() {
+        return eventRepository.findEventList();
     }
 }

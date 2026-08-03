@@ -1,0 +1,27 @@
+package studio.aroudhub.ticketing.domain.event.repository;
+
+import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
+
+import java.time.LocalDate;
+
+public record EventDetailResponse(
+        int eventId,
+        String eventTitle,
+        String eventDesc,
+        String status,
+        LocalDate eventStartDate,
+        LocalDate eventEndDate,
+        ConcertResponse concert
+) {
+    public static EventDetailResponse from(Event event){
+        return new EventDetailResponse(
+                event.getEventId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getStatus(),
+                event.getStartDate(),
+                event.getEndDate(),
+                ConcertResponse.from(event.getConcert())
+        );
+    }
+}

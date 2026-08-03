@@ -52,7 +52,7 @@ class ConcertServiceTest {
         when(concert.getImgUrl()).thenReturn("https://cdn.example.com/river-strings.jpg");
         when(concert.getDescription()).thenReturn("Open air string concert");
         when(concert.getBookingCnt()).thenReturn(201);
-        when(concert.getCreatedAt()).thenReturn("2026-06-01");
+        when(concert.getCreatedAt()).thenReturn(LocalDate.of(2026, 6, 1));
         when(venue.getName()).thenReturn("Maple Theater");
         when(concert.getRunningTime()).thenReturn(120);
         when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 7, 1));
@@ -97,7 +97,7 @@ class ConcertServiceTest {
         when(venue.getVenueId()).thenReturn(9);
         when(venue.getName()).thenReturn("North Arena");
         when(concert.getBookingCnt()).thenReturn(312);
-        when(concert.getCreatedAt()).thenReturn("2026-08-01");
+        when(concert.getCreatedAt()).thenReturn(LocalDate.of(2026, 8, 1));
         when(concert.getRunningTime()).thenReturn(150);
         when(concert.getStartDate()).thenReturn(LocalDate.of(2026, 9, 3));
         when(concert.getEndDate()).thenReturn(LocalDate.of(2026, 9, 7));

@@ -23,7 +23,7 @@ public record ConcertListResponse(
         @JsonProperty("booking_cnt")
         int bookingCnt,
         @JsonProperty("created_at")
-        String createdAt,
+        LocalDate createdAt,
         String venue,
         @JsonProperty("running_time")
         int runningTime,
