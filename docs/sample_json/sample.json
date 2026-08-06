@@ -1,0 +1,19 @@
+{
+  "eventId": "string",
+  "eventTitle": "string",
+  "eventDesc": "string",
+  "status": "string",
+  "eventStartDate": "string",
+  "eventEndDate": "string",
+  "concert": {
+    "concertId": "string",
+    "concertTitle": "string",
+    "imgUrl": "string",
+    "concertDesc": "string",
+    "venue": "string", // venue는 외부 테이블 참조
+    "runningTime": "number",
+    "concertStartDate": "string",
+    "concertEndDate": "string",
+    "ageRating": "string"
+  }
+}

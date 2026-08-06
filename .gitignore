@@ -41,6 +41,3 @@ out/
 .env
 .env.*
 !.env.example
-
-## documentation files ##
-docs/

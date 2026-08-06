@@ -1,0 +1,32 @@
+{
+  "concertId":1,
+  "concertTitle":"string",
+  "imgUrl":"string",
+  "concertDesc":"string",
+  "bookingCnt":2,
+  "createdAt":"2025-01-01",
+  "venue":"string",
+  "runningTime":23,
+  "concertStartDate":"2025-01-01",
+  "concertEndDate":"2025-01-31",
+  "ageRating":23,
+  "seatList":[
+    {
+      "concertPriceId": 1,
+      "rating":"R",
+      "price":12000
+    }
+  ],
+  "schedule":[
+    {
+      "scheduleId":2,
+      "date":"2025-01-01",
+      "showList":[
+        {
+          "showId":2,
+          "time":"12:00"
+        }
+      ]
+    }
+  ]
+}

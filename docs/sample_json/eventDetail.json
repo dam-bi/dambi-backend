@@ -1,0 +1,20 @@
+  {
+    "eventId": 1,
+    "eventTitle": "얼리버드:〈현역가왕3〉 전국투어 콘서트 - 대전",
+    "eventDesc": "단독 얼리버드 행사! 2026년 7월 15일~20일 총 5일동안의 이벤트 특가 할인!",
+    "concertImg":"string",
+    "status": "예정",
+    "eventStartDate": "2026-07-15",
+    "eventEndDate": "2026-07-20",
+    "concert": {
+      "concertId": 1,
+      "concertTitle": "〈현역가왕3〉 전국투어 콘서트 - 대전",
+      "imgUrl": "https://res.cloudinary.com/dvvryn0ya/image/upload/v1782454329/26008688_p_eo5sww.gif",
+      "concertDesc": "예매가능시간 관람 3시간 전까지-2026년 8월 8일(토) 1PM, 6PM",
+      "venue": "대전 컨벤션센터 제1전시장",
+      "runningTime": 360,
+      "concertStartDate": "2026-08-08",
+      "concertEndDate": "2026-08-08",
+      "ageRating": "8세이상 관람가능"
+    }
+  }
