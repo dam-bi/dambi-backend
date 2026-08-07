@@ -6,13 +6,7 @@
 
 ### 최초 1회
 
-DB 초기화 스크립트의 실행 권한 문제가 발생하는 환경에서는 아래 명령을 실행합니다.
-
-```bash
-chmod +x docker/db/init/00-load-tables.sh
-```
-
-> Windows에서는 Git Bash 또는 WSL 등 `chmod`를 사용할 수 있는 환경에서 실행합니다.
+별도 권한 설정 없이 아래 명령으로 실행합니다.
 
 ### Docker 실행
 
@@ -83,21 +77,17 @@ Docker DB가 새로 만들어질 때 프론트 연동 테스트를 위한 기본
 
 ## 4. DB 초기화 방식
 
-PostgreSQL 볼륨이 없는 상태에서 처음 실행하면 다음 스크립트가 실행됩니다.
+PostgreSQL 볼륨이 없는 상태에서 처음 실행하면 `docker/db/init/` 바로 아래의 SQL 파일이 파일명 순서대로 실행됩니다.
 
-```text
-docker/db/init/00-load-tables.sh
-```
+1. `docker/db/init/01-schema.sql`
+2. `docker/db/init/02-users.sql`
+3. `docker/db/init/03-venue.sql`
+4. `docker/db/init/04-concert.sql`
+5. `docker/db/init/05-concert_price.sql`
+6. `docker/db/init/06-concert_schedule.sql`
+7. `docker/db/init/07-event.sql`
 
-이 스크립트는 다음 SQL 파일을 순서대로 실행합니다.
-
-1. `docker/db/init/tables/schema.sql`
-2. `docker/db/init/tables/users.sql`
-3. `docker/db/init/tables/venue.sql`
-4. `docker/db/init/tables/concert.sql`
-5. `docker/db/init/tables/event.sql`
-
-이 순서는 `concert -> venue`, `event -> concert` 외래키 관계 때문에 유지해야 합니다.
+이 순서는 `venue -> concert`, `concert -> concert_price`, `concert -> concert_schedule`, `concert -> event` 관계 때문에 유지해야 합니다.
 
 Spring Boot는 `local` 프로필로 실행하며 JPA의 `ddl-auto=validate`를 사용합니다. 따라서 JPA가 테이블을 생성하거나 수정하지 않고, 초기화 SQL로 만들어진 스키마가 엔티티와 일치하는지만 검증합니다.
 
