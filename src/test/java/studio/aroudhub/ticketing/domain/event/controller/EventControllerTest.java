@@ -24,9 +24,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.ConcertResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.service.EventService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 

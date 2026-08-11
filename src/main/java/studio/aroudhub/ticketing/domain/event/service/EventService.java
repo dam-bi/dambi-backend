@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 
 @Service
