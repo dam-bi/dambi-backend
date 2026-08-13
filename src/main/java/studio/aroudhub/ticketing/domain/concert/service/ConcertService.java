@@ -22,8 +22,26 @@ public class ConcertService {
 
     @Transactional(readOnly = true)
     // concert 테이블 조회범위: 전체. 조회 컬럼: 일부
-    public Page<ConcertListResponse> findPage(Pageable pageable) {
-        return concertRepository.findConcertPage(pageable);
+    // GET /api/concerts
+    // GET /api/concert?sortBy=기준값&status=값
+    public Page<ConcertListResponse> findPage(Pageable pageable, String sortBy, String status) {
+        String normalizedSortBy = normalize(sortBy);
+        normalize(status);
+
+        if (normalizedSortBy == null || normalizedSortBy.equals("랭킹순")) {
+            return concertRepository.findConcertPageOrderByBookingCntDesc(pageable);
+        }
+        if (normalizedSortBy.equals("높은가격순")) {
+            return concertRepository.findConcertPageOrderByHighestPriceDesc(pageable);
+        }
+        if (normalizedSortBy.equals("낮은가격순")) {
+            return concertRepository.findConcertPageOrderByLowestPriceAsc(pageable);
+        }
+
+        throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "지원하지 않는 정렬 방식입니다."
+        );
     }
 
     @Transactional(readOnly = true)
@@ -35,5 +53,12 @@ public class ConcertService {
                         "Concert not found."
                 ));
         return ConcertDetailResponse.from(concert);
+    }
+
+    private String normalize(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

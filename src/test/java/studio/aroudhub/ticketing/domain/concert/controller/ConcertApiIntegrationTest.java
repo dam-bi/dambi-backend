@@ -74,8 +74,107 @@ class ConcertApiIntegrationTest {
                 .andExpect(jsonPath("$.content[0].imgUrl").value("https://cdn.example.com/posters/jazz-river.jpg"))
                 .andExpect(jsonPath("$.content[0].bookingCnt").value(87))
                 .andExpect(jsonPath("$.content[0].venue").value("Blue Hall"))
-                .andExpect(jsonPath("$.content[0].startDate").value("2026-07-20"))
-                .andExpect(jsonPath("$.content[0].endDate").value("2026-07-27"));
+                .andExpect(jsonPath("$.content[0].concertStartDate").value("2026-07-20"))
+                .andExpect(jsonPath("$.content[0].concertEndDate").value("2026-07-27"));
+    }
+
+    @Test
+    @Transactional
+    void getConcerts_withSortByPrice_returnsSortedConcertList() throws Exception {
+        Venue venue = createVenue("Sorting Hall", "789 Incheon Road");
+        entityManager.persist(venue);
+
+        Concert expensiveConcert = createConcert(
+                venue,
+                "Expensive Night",
+                "https://cdn.example.com/posters/expensive-night.jpg",
+                "Premium concert",
+                50,
+                "2026-07-03",
+                140,
+                LocalDate.of(2026, 9, 1),
+                LocalDate.of(2026, 9, 2),
+                "15+"
+        );
+        entityManager.persist(expensiveConcert);
+        entityManager.persist(createConcertPrice(expensiveConcert, "VIP", 150000));
+        entityManager.persist(createConcertPrice(expensiveConcert, "R", 120000));
+
+        Concert affordableConcert = createConcert(
+                venue,
+                "Affordable Day",
+                "https://cdn.example.com/posters/affordable-day.jpg",
+                "Budget concert",
+                90,
+                "2026-07-04",
+                100,
+                LocalDate.of(2026, 9, 5),
+                LocalDate.of(2026, 9, 6),
+                "12+"
+        );
+        entityManager.persist(affordableConcert);
+        entityManager.persist(createConcertPrice(affordableConcert, "A", 70000));
+        entityManager.persist(createConcertPrice(affordableConcert, "B", 50000));
+
+        Concert tieBreakerConcertA = createConcert(
+                venue,
+                "Tie Breaker A",
+                "https://cdn.example.com/posters/tie-breaker-a.jpg",
+                "Same representative price A",
+                60,
+                "2026-07-05",
+                95,
+                LocalDate.of(2026, 9, 7),
+                LocalDate.of(2026, 9, 8),
+                "12+"
+        );
+        entityManager.persist(tieBreakerConcertA);
+        entityManager.persist(createConcertPrice(tieBreakerConcertA, "A", 80000));
+
+        Concert tieBreakerConcertB = createConcert(
+                venue,
+                "Tie Breaker B",
+                "https://cdn.example.com/posters/tie-breaker-b.jpg",
+                "Same representative price B",
+                40,
+                "2026-07-06",
+                95,
+                LocalDate.of(2026, 9, 9),
+                LocalDate.of(2026, 9, 10),
+                "12+"
+        );
+        entityManager.persist(tieBreakerConcertB);
+        entityManager.persist(createConcertPrice(tieBreakerConcertB, "A", 80000));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "높은가격순"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].concertTitle").value("Expensive Night"))
+                .andExpect(jsonPath("$.content[1].concertTitle").value("Tie Breaker A"))
+                .andExpect(jsonPath("$.content[2].concertTitle").value("Tie Breaker B"))
+                .andExpect(jsonPath("$.content[3].concertTitle").value("Affordable Day"));
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "낮은가격순"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].concertTitle").value("Affordable Day"))
+                .andExpect(jsonPath("$.content[1].concertTitle").value("Tie Breaker A"))
+                .andExpect(jsonPath("$.content[2].concertTitle").value("Tie Breaker B"))
+                .andExpect(jsonPath("$.content[3].concertTitle").value("Expensive Night"));
+    }
+
+    @Test
+    void getConcerts_whenSortByUnsupported_returnsNotFound() throws Exception {
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "최신순"))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(result.getResolvedException())
+                        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class))
+                .andExpect(result -> org.assertj.core.api.Assertions.assertThat(result.getResponse().getErrorMessage())
+                        .contains("지원하지 않는 정렬 방식입니다."));
     }
 
     @Test
@@ -137,6 +236,14 @@ class ConcertApiIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    private ConcertPrice createConcertPrice(Concert concert, String rating, int price) {
+        ConcertPrice concertPrice = new ConcertPrice();
+        setField(concertPrice, "concert", concert);
+        setField(concertPrice, "rating", rating);
+        setField(concertPrice, "price", price);
+        return concertPrice;
+    }
+
     private Venue createVenue(String name, String address) {
         Venue venue = new Venue();
         setField(venue, "name", name);
@@ -162,7 +269,7 @@ class ConcertApiIntegrationTest {
         setField(concert, "imgUrl", imgUrl);
         setField(concert, "description", description);
         setField(concert, "bookingCnt", bookingCnt);
-        setField(concert, "createdAt", createdAt);
+        setField(concert, "createdAt", LocalDate.parse(createdAt));
         setField(concert, "runningTime", runningTime);
         setField(concert, "startDate", startDate);
         setField(concert, "endDate", endDate);

@@ -3,6 +3,7 @@ package studio.aroudhub.ticketing.domain.concert.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.concert.TestEntityFactory;
 import studio.aroudhub.ticketing.domain.concert.repository.ConcertRepository;
@@ -41,9 +43,9 @@ class ConcertServiceTest {
         );
         Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of(concert));
 
-        when(concertRepository.findConcertPage(pageable)).thenReturn(repositoryPage);
+        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable)).thenReturn(repositoryPage);
 
-        Page<ConcertListResponse> result = concertService.findPage(pageable);
+        Page<ConcertListResponse> result = concertService.findPage(pageable, null, null);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).concertId()).isEqualTo(10);
@@ -51,6 +53,65 @@ class ConcertServiceTest {
         assertThat(result.getContent().get(0).venue()).isEqualTo("Maple Theater");
         assertThat(result.getContent().get(0).concertStartDate()).isEqualTo(LocalDate.of(2026, 7, 1));
         assertThat(result.getContent().get(0).concertEndDate()).isEqualTo(LocalDate.of(2026, 7, 10));
+
+        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable);
+    }
+
+    @Test
+    void findPage_whenSortByHighestPrice_returnsRepositoryPage() {
+        ConcertRepository concertRepository = mock(ConcertRepository.class);
+        ConcertService concertService = new ConcertService(concertRepository);
+        PageRequest pageable = PageRequest.of(0, 12);
+        Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
+
+        when(concertRepository.findConcertPageOrderByHighestPriceDesc(pageable)).thenReturn(repositoryPage);
+
+        Page<ConcertListResponse> result = concertService.findPage(pageable, "높은가격순", null);
+
+        assertThat(result).isSameAs(repositoryPage);
+        verify(concertRepository).findConcertPageOrderByHighestPriceDesc(pageable);
+    }
+
+    @Test
+    void findPage_whenSortByLowestPrice_returnsRepositoryPage() {
+        ConcertRepository concertRepository = mock(ConcertRepository.class);
+        ConcertService concertService = new ConcertService(concertRepository);
+        PageRequest pageable = PageRequest.of(0, 12);
+        Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
+
+        when(concertRepository.findConcertPageOrderByLowestPriceAsc(pageable)).thenReturn(repositoryPage);
+
+        Page<ConcertListResponse> result = concertService.findPage(pageable, "낮은가격순", null);
+
+        assertThat(result).isSameAs(repositoryPage);
+        verify(concertRepository).findConcertPageOrderByLowestPriceAsc(pageable);
+    }
+
+    @Test
+    void findPage_whenSortByBlank_usesDefaultSort() {
+        ConcertRepository concertRepository = mock(ConcertRepository.class);
+        ConcertService concertService = new ConcertService(concertRepository);
+        PageRequest pageable = PageRequest.of(0, 12);
+        Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
+
+        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable)).thenReturn(repositoryPage);
+
+        Page<ConcertListResponse> result = concertService.findPage(pageable, "   ", null);
+
+        assertThat(result).isSameAs(repositoryPage);
+        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable);
+    }
+
+    @Test
+    void findPage_whenSortByUnsupported_throwsNotFound() {
+        ConcertRepository concertRepository = mock(ConcertRepository.class);
+        ConcertService concertService = new ConcertService(concertRepository);
+        PageRequest pageable = PageRequest.of(0, 12);
+
+        assertThatThrownBy(() -> concertService.findPage(pageable, "최신순", null))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test

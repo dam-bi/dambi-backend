@@ -1,8 +1,10 @@
 package studio.aroudhub.ticketing.domain.concert.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import studio.aroudhub.ticketing.domain.concert.TestEntityFactory;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertPriceResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
@@ -60,7 +61,7 @@ class ConcertControllerTest {
                 )
         ));
 
-        when(concertService.findPage(any())).thenReturn(page);
+        when(concertService.findPage(any(), eq(null), eq(null))).thenReturn(page);
 
         mockMvc.perform(get("/api/concerts")
                         .param("page", "0")
@@ -72,10 +73,40 @@ class ConcertControllerTest {
                 .andExpect(jsonPath("$.content[0].imgUrl").value("https://cdn.example.com/posters/jazz-river.jpg"))
                 .andExpect(jsonPath("$.content[0].bookingCnt").value(87))
                 .andExpect(jsonPath("$.content[0].venue").value("Blue Hall"))
-                .andExpect(jsonPath("$.content[0].startDate").value("2026-07-20"))
-                .andExpect(jsonPath("$.content[0].endDate").value("2026-07-27"));
+                .andExpect(jsonPath("$.content[0].concertStartDate").value("2026-07-20"))
+                .andExpect(jsonPath("$.content[0].concertEndDate").value("2026-07-27"));
 
-        verify(concertService).findPage(any());
+        verify(concertService).findPage(any(), eq(null), eq(null));
+    }
+
+    @Test
+    void getConcerts_withSortBy_passesSortToService() throws Exception {
+        Page<ConcertListResponse> page = new PageImpl<>(List.of());
+
+        when(concertService.findPage(any(), eq("높은가격순"), eq(null))).thenReturn(page);
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "높은가격순"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        verify(concertService).findPage(any(), eq("높은가격순"), eq(null));
+    }
+
+    @Test
+    void getConcerts_whenSortByUnsupported_returnsNotFound() throws Exception {
+        when(concertService.findPage(any(), eq("최신순"), eq(null)))
+                .thenThrow(new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "지원하지 않는 정렬 방식입니다."
+                ));
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "최신순"))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                        .hasMessageContaining("지원하지 않는 정렬 방식입니다."));
     }
 
     @Test
@@ -85,8 +116,11 @@ class ConcertControllerTest {
                 2,
                 "Midnight Synthwave",
                 "https://cdn.example.com/posters/midnight-synthwave.jpg",
+                "Arena synthwave show",
                 548,
+                LocalDate.of(2026, 7, 2),
                 "Aurora Dome",
+                135,
                 LocalDate.of(2026, 8, 12),
                 LocalDate.of(2026, 8, 15),
                 "15+",

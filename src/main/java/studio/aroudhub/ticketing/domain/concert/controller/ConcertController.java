@@ -25,18 +25,21 @@ public class ConcertController {
 
     @GetMapping
     // 페이지 번호와 크기를 받아 콘서트 목록을 페이징 조회한다.
-    // /api/concerts
+    // GET /api/concerts
+    // GET /api/concert?sortBy=기준값&status=값
     public Page<ConcertListResponse> getConcerts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String status
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return concertService.findPage(pageable);
+        return concertService.findPage(pageable, sortBy, status);
     }
 
     @GetMapping("/{concertId}")
     // 콘서트 ID로 특정 콘서트의 상세 정보를 조회한다.
-    // /api/concerts/2
+    // GET /api/concerts/2
     public ConcertDetailResponse getConcertDetail(
             @PathVariable int concertId
     ) {

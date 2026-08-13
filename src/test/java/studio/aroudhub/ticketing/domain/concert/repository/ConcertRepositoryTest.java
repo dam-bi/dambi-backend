@@ -98,7 +98,7 @@ class ConcertRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        Page<ConcertListResponse> result = concertRepository.findConcertPage(PageRequest.of(0, 10));
+        Page<ConcertListResponse> result = concertRepository.findConcertPageOrderByBookingCntDesc(PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).concertTitle()).isEqualTo("Festival Headliner");
@@ -133,11 +133,11 @@ class ConcertRepositoryTest {
         setField(concert, "imgUrl", imgUrl);
         setField(concert, "description", description);
         setField(concert, "bookingCnt", bookingCnt);
-        setField(concert, "createdAt", createdAt);
-        setField(concert, "running_time", runningTime);
+        setField(concert, "createdAt", LocalDate.parse(createdAt));
+        setField(concert, "runningTime", runningTime);
         setField(concert, "startDate", startDate);
         setField(concert, "endDate", endDate);
-        setField(concert, "age_rating", ageRating);
+        setField(concert, "ageRating", ageRating);
         return concert;
     }
 
