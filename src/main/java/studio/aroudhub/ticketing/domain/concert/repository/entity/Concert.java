@@ -52,6 +52,9 @@ public class Concert {
     //@JsonProperty("createdAt")
     private LocalDate createdAt;
 
+    @Column(name = "status", nullable = false, length = 255)
+    private String status;
+
     @Column(name = "running_time")
     //@JsonProperty("runningTime")
     private int runningTime;

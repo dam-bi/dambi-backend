@@ -43,7 +43,7 @@ class ConcertServiceTest {
         );
         Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of(concert));
 
-        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable)).thenReturn(repositoryPage);
+        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable, null)).thenReturn(repositoryPage);
 
         Page<ConcertListResponse> result = concertService.findPage(pageable, null, null);
 
@@ -54,7 +54,7 @@ class ConcertServiceTest {
         assertThat(result.getContent().get(0).concertStartDate()).isEqualTo(LocalDate.of(2026, 7, 1));
         assertThat(result.getContent().get(0).concertEndDate()).isEqualTo(LocalDate.of(2026, 7, 10));
 
-        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable);
+        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable, null);
     }
 
     @Test
@@ -64,12 +64,12 @@ class ConcertServiceTest {
         PageRequest pageable = PageRequest.of(0, 12);
         Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
 
-        when(concertRepository.findConcertPageOrderByHighestPriceDesc(pageable)).thenReturn(repositoryPage);
+        when(concertRepository.findConcertPageOrderByHighestPriceDesc(pageable, null)).thenReturn(repositoryPage);
 
         Page<ConcertListResponse> result = concertService.findPage(pageable, "높은가격순", null);
 
         assertThat(result).isSameAs(repositoryPage);
-        verify(concertRepository).findConcertPageOrderByHighestPriceDesc(pageable);
+        verify(concertRepository).findConcertPageOrderByHighestPriceDesc(pageable, null);
     }
 
     @Test
@@ -79,12 +79,12 @@ class ConcertServiceTest {
         PageRequest pageable = PageRequest.of(0, 12);
         Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
 
-        when(concertRepository.findConcertPageOrderByLowestPriceAsc(pageable)).thenReturn(repositoryPage);
+        when(concertRepository.findConcertPageOrderByLowestPriceAsc(pageable, null)).thenReturn(repositoryPage);
 
         Page<ConcertListResponse> result = concertService.findPage(pageable, "낮은가격순", null);
 
         assertThat(result).isSameAs(repositoryPage);
-        verify(concertRepository).findConcertPageOrderByLowestPriceAsc(pageable);
+        verify(concertRepository).findConcertPageOrderByLowestPriceAsc(pageable, null);
     }
 
     @Test
@@ -94,12 +94,27 @@ class ConcertServiceTest {
         PageRequest pageable = PageRequest.of(0, 12);
         Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
 
-        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable)).thenReturn(repositoryPage);
+        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable, null)).thenReturn(repositoryPage);
 
         Page<ConcertListResponse> result = concertService.findPage(pageable, "   ", null);
 
         assertThat(result).isSameAs(repositoryPage);
-        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable);
+        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable, null);
+    }
+
+    @Test
+    void findPage_whenStatusProvided_appliesStatusFilterToRepository() {
+        ConcertRepository concertRepository = mock(ConcertRepository.class);
+        ConcertService concertService = new ConcertService(concertRepository);
+        PageRequest pageable = PageRequest.of(0, 12);
+        Page<ConcertListResponse> repositoryPage = new PageImpl<>(List.of());
+
+        when(concertRepository.findConcertPageOrderByBookingCntDesc(pageable, "OPEN")).thenReturn(repositoryPage);
+
+        Page<ConcertListResponse> result = concertService.findPage(pageable, null, " OPEN ");
+
+        assertThat(result).isSameAs(repositoryPage);
+        verify(concertRepository).findConcertPageOrderByBookingCntDesc(pageable, "OPEN");
     }
 
     @Test

@@ -58,7 +58,8 @@ class ConcertApiIntegrationTest {
                 110,
                 LocalDate.of(2026, 7, 20),
                 LocalDate.of(2026, 7, 27),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(concert);
         entityManager.flush();
@@ -94,7 +95,8 @@ class ConcertApiIntegrationTest {
                 140,
                 LocalDate.of(2026, 9, 1),
                 LocalDate.of(2026, 9, 2),
-                "15+"
+                "15+",
+                "OPEN"
         );
         entityManager.persist(expensiveConcert);
         entityManager.persist(createConcertPrice(expensiveConcert, "VIP", 150000));
@@ -110,7 +112,8 @@ class ConcertApiIntegrationTest {
                 100,
                 LocalDate.of(2026, 9, 5),
                 LocalDate.of(2026, 9, 6),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(affordableConcert);
         entityManager.persist(createConcertPrice(affordableConcert, "A", 70000));
@@ -126,7 +129,8 @@ class ConcertApiIntegrationTest {
                 95,
                 LocalDate.of(2026, 9, 7),
                 LocalDate.of(2026, 9, 8),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(tieBreakerConcertA);
         entityManager.persist(createConcertPrice(tieBreakerConcertA, "A", 80000));
@@ -141,7 +145,8 @@ class ConcertApiIntegrationTest {
                 95,
                 LocalDate.of(2026, 9, 9),
                 LocalDate.of(2026, 9, 10),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(tieBreakerConcertB);
         entityManager.persist(createConcertPrice(tieBreakerConcertB, "A", 80000));
@@ -179,6 +184,50 @@ class ConcertApiIntegrationTest {
 
     @Test
     @Transactional
+    void getConcerts_withStatus_returnsOnlyMatchingConcerts() throws Exception {
+        Venue venue = createVenue("Filter Hall", "321 Daegu Road");
+        entityManager.persist(venue);
+
+        Concert openConcert = createConcert(
+                venue,
+                "Open Festival",
+                "https://cdn.example.com/posters/open-festival.jpg",
+                "Open status concert",
+                30,
+                "2026-07-10",
+                120,
+                LocalDate.of(2026, 9, 20),
+                LocalDate.of(2026, 9, 20),
+                "12+",
+                "OPEN"
+        );
+        Concert closedConcert = createConcert(
+                venue,
+                "Closed Festival",
+                "https://cdn.example.com/posters/closed-festival.jpg",
+                "Closed status concert",
+                40,
+                "2026-07-11",
+                120,
+                LocalDate.of(2026, 9, 21),
+                LocalDate.of(2026, 9, 21),
+                "12+",
+                "CLOSED"
+        );
+        entityManager.persist(openConcert);
+        entityManager.persist(closedConcert);
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("status", "OPEN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].concertTitle").value("Open Festival"));
+    }
+
+    @Test
+    @Transactional
     void getConcertDetail_returnsNestedSeatAndScheduleDataThroughControllerServiceRepositoryFlow() throws Exception {
         Venue venue = createVenue("Aurora Dome", "456 Busan Avenue");
         entityManager.persist(venue);
@@ -193,7 +242,8 @@ class ConcertApiIntegrationTest {
                 135,
                 LocalDate.of(2026, 8, 12),
                 LocalDate.of(2026, 8, 15),
-                "15+"
+                "15+",
+                "OPEN"
         );
         entityManager.persist(concert);
 
@@ -259,9 +309,10 @@ class ConcertApiIntegrationTest {
             int bookingCnt,
             String createdAt,
             int runningTime,
-            LocalDate startDate,
-            LocalDate endDate,
-            String ageRating
+                LocalDate startDate,
+                LocalDate endDate,
+                String ageRating,
+                String status
     ) {
         Concert concert = new Concert();
         setField(concert, "venue", venue);
@@ -273,6 +324,7 @@ class ConcertApiIntegrationTest {
         setField(concert, "runningTime", runningTime);
         setField(concert, "startDate", startDate);
         setField(concert, "endDate", endDate);
+        setField(concert, "status", status);
         setField(concert, "ageRating", ageRating);
         return concert;
     }

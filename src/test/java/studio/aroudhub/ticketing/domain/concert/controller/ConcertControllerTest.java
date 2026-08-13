@@ -1,10 +1,10 @@
 package studio.aroudhub.ticketing.domain.concert.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.util.List;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +24,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertPriceResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertPriceResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertScheduleResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ShowListResponse;
 import studio.aroudhub.ticketing.domain.concert.service.ConcertService;
@@ -46,9 +45,8 @@ class ConcertControllerTest {
     private ConcertService concertService;
 
     @Test
-    @DisplayName("콘서트가 존재하면 200 OK 메시지와 콘서트 목록 반환")
+    @DisplayName("콘서트가 존재하면 200 OK와 콘서트 목록을 반환한다")
     void getConcerts_returnsPagedConcertList() throws Exception {
-        // 콘서트 목록 조회 시 각 항목이 db.json 기준의 전체 콘서트 정보를 담아 반환되는지 확인한다.
         Page<ConcertListResponse> page = new PageImpl<>(List.of(
                 new ConcertListResponse(
                         1,
@@ -94,6 +92,20 @@ class ConcertControllerTest {
     }
 
     @Test
+    void getConcerts_withStatus_passesStatusToService() throws Exception {
+        Page<ConcertListResponse> page = new PageImpl<>(List.of());
+
+        when(concertService.findPage(any(), eq(null), eq("OPEN"))).thenReturn(page);
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("status", "OPEN"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        verify(concertService).findPage(any(), eq(null), eq("OPEN"));
+    }
+
+    @Test
     void getConcerts_whenSortByUnsupported_returnsNotFound() throws Exception {
         when(concertService.findPage(any(), eq("최신순"), eq(null)))
                 .thenThrow(new org.springframework.web.server.ResponseStatusException(
@@ -111,7 +123,6 @@ class ConcertControllerTest {
 
     @Test
     void getConcert_returnsConcertDetail() throws Exception {
-        // 콘서트 상세 조회 시 db.json 샘플 형식의 snake_case JSON이 반환되는지 확인한다.
         ConcertDetailResponse detail = new ConcertDetailResponse(
                 2,
                 "Midnight Synthwave",
@@ -161,7 +172,6 @@ class ConcertControllerTest {
 
     @Test
     void getConcert_whenConcertMissing_returnsNotFound() throws Exception {
-        // 존재하지 않는 콘서트 ID로 조회하면 404 응답이 반환되는지 확인한다.
         when(concertService.findDetail(999))
                 .thenThrow(new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND,

@@ -44,7 +44,8 @@ class ConcertRepositoryTest {
                 120,
                 LocalDate.of(2026, 7, 10),
                 LocalDate.of(2026, 7, 10),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(concert);
         entityManager.flush();
@@ -79,7 +80,8 @@ class ConcertRepositoryTest {
                 130,
                 LocalDate.of(2026, 8, 2),
                 LocalDate.of(2026, 8, 2),
-                "15+"
+                "15+",
+                "OPEN"
         );
         Concert higherBookingConcert = createConcert(
                 venue,
@@ -91,14 +93,15 @@ class ConcertRepositoryTest {
                 150,
                 LocalDate.of(2026, 8, 5),
                 LocalDate.of(2026, 8, 6),
-                "12+"
+                "12+",
+                "OPEN"
         );
         entityManager.persist(lowerBookingConcert);
         entityManager.persist(higherBookingConcert);
         entityManager.flush();
         entityManager.clear();
 
-        Page<ConcertListResponse> result = concertRepository.findConcertPageOrderByBookingCntDesc(PageRequest.of(0, 10));
+        Page<ConcertListResponse> result = concertRepository.findConcertPageOrderByBookingCntDesc(PageRequest.of(0, 10), null);
 
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).concertTitle()).isEqualTo("Festival Headliner");
@@ -106,6 +109,51 @@ class ConcertRepositoryTest {
         assertThat(result.getContent().get(0).venue()).isEqualTo("Blue Square");
         assertThat(result.getContent().get(1).concertTitle()).isEqualTo("Late Night Rock");
         assertThat(result.getContent().get(1).bookingCnt()).isEqualTo(11);
+    }
+
+    @Test
+    void findConcertPage_whenStatusProvided_returnsOnlyMatchingConcerts() {
+        Venue venue = createVenue("Filter Venue", "12 Daejeon-ro");
+        entityManager.persist(venue);
+
+        Concert openConcert = createConcert(
+                venue,
+                "Open Concert",
+                "https://cdn.example.com/open-concert.jpg",
+                "Available concert",
+                10,
+                "2026-06-10",
+                120,
+                LocalDate.of(2026, 8, 20),
+                LocalDate.of(2026, 8, 20),
+                "12+",
+                "OPEN"
+        );
+        Concert closedConcert = createConcert(
+                venue,
+                "Closed Concert",
+                "https://cdn.example.com/closed-concert.jpg",
+                "Closed concert",
+                20,
+                "2026-06-11",
+                120,
+                LocalDate.of(2026, 8, 21),
+                LocalDate.of(2026, 8, 21),
+                "12+",
+                "CLOSED"
+        );
+        entityManager.persist(openConcert);
+        entityManager.persist(closedConcert);
+        entityManager.flush();
+        entityManager.clear();
+
+        Page<ConcertListResponse> result = concertRepository.findConcertPageOrderByBookingCntDesc(
+                PageRequest.of(0, 10),
+                "OPEN"
+        );
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).concertTitle()).isEqualTo("Open Concert");
     }
 
     private Venue createVenue(String name, String address) {
@@ -125,7 +173,8 @@ class ConcertRepositoryTest {
             int runningTime,
             LocalDate startDate,
             LocalDate endDate,
-            String ageRating
+            String ageRating,
+            String status
     ) {
         Concert concert = new Concert();
         setField(concert, "venue", venue);
@@ -137,6 +186,7 @@ class ConcertRepositoryTest {
         setField(concert, "runningTime", runningTime);
         setField(concert, "startDate", startDate);
         setField(concert, "endDate", endDate);
+        setField(concert, "status", status);
         setField(concert, "ageRating", ageRating);
         return concert;
     }

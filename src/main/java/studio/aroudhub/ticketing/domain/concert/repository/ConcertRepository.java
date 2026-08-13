@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 
@@ -15,9 +16,10 @@ public interface ConcertRepository extends JpaRepository<Concert, Integer> {
                         c.concertId, c.title, c.imgUrl, c.bookingCnt,
                         c.venue.name, c.startDate, c.endDate)
             from Concert c
+            where (:status is null or c.status = :status)
             order by c.bookingCnt desc, c.concertId asc
             """)
-    Page<ConcertListResponse> findConcertPageOrderByBookingCntDesc(Pageable pageable);
+    Page<ConcertListResponse> findConcertPageOrderByBookingCntDesc(Pageable pageable, @Param("status") String status);
 
     @Query("""
             select new studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse(
@@ -25,10 +27,11 @@ public interface ConcertRepository extends JpaRepository<Concert, Integer> {
                         c.venue.name, c.startDate, c.endDate)
             from Concert c
             left join c.price cp
+            where (:status is null or c.status = :status)
             group by c.concertId, c.title, c.imgUrl, c.bookingCnt, c.venue.name, c.startDate, c.endDate
             order by max(cp.price) desc, c.concertId asc
             """)
-    Page<ConcertListResponse> findConcertPageOrderByHighestPriceDesc(Pageable pageable);
+    Page<ConcertListResponse> findConcertPageOrderByHighestPriceDesc(Pageable pageable, @Param("status") String status);
 
     @Query("""
             select new studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse(
@@ -36,10 +39,11 @@ public interface ConcertRepository extends JpaRepository<Concert, Integer> {
                         c.venue.name, c.startDate, c.endDate)
             from Concert c
             left join c.price cp
+            where (:status is null or c.status = :status)
             group by c.concertId, c.title, c.imgUrl, c.bookingCnt, c.venue.name, c.startDate, c.endDate
             order by min(cp.price) asc, c.concertId asc
             """)
-    Page<ConcertListResponse> findConcertPageOrderByLowestPriceAsc(Pageable pageable);
+    Page<ConcertListResponse> findConcertPageOrderByLowestPriceAsc(Pageable pageable, @Param("status") String status);
 
     @EntityGraph(attributePaths = "venue")
     java.util.Optional<Concert> findByConcertId(int concertId);
