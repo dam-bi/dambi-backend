@@ -3,6 +3,7 @@ package studio.aroudhub.ticketing.domain.event.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -12,10 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.ConcertResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 
 class EventServiceTest {
@@ -25,6 +28,7 @@ class EventServiceTest {
         EventRepository eventRepository = mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
         PageRequest pageable = PageRequest.of(0, 10);
+        Pageable expectedPageable = PageRequest.of(0, 10, Sort.unsorted());
         Page<EventListResponse> expected = new PageImpl<>(List.of(
                 new EventListResponse(
                         7,
@@ -36,11 +40,102 @@ class EventServiceTest {
                 )
         ));
 
-        when(eventRepository.findEventPage(pageable)).thenReturn(expected);
+        when(eventRepository.findEventPage(expectedPageable, null)).thenReturn(expected);
 
-        Page<EventListResponse> result = eventService.findPage(pageable);
+        Page<EventListResponse> result = eventService.findPage(pageable, null, null);
 
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void findPage_withoutSortByAndStatus_usesUnsortedPageableAndNoStatusFilter() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(1, 5);
+        Pageable expectedPageable = PageRequest.of(1, 5, Sort.unsorted());
+        Page<EventListResponse> expected = new PageImpl<>(List.of());
+
+        when(eventRepository.findEventPage(expectedPageable, null)).thenReturn(expected);
+
+        Page<EventListResponse> result = eventService.findPage(pageable, null, null);
+
+        assertThat(result).isEqualTo(expected);
+        verify(eventRepository).findEventPage(expectedPageable, null);
+    }
+
+    @Test
+    void findPage_withBlankSortByAndStatus_usesUnsortedPageableAndNoStatusFilter() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Pageable expectedPageable = PageRequest.of(0, 10, Sort.unsorted());
+        Page<EventListResponse> expected = new PageImpl<>(List.of());
+
+        when(eventRepository.findEventPage(expectedPageable, null)).thenReturn(expected);
+
+        Page<EventListResponse> result = eventService.findPage(pageable, "", "");
+
+        assertThat(result).isEqualTo(expected);
+        verify(eventRepository).findEventPage(expectedPageable, null);
+    }
+
+    @Test
+    void findPage_withSupportedSortBy_appliesStatusDescendingSort() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "status"));
+        Page<EventListResponse> expected = new PageImpl<>(List.of());
+
+        when(eventRepository.findEventPage(expectedPageable, null)).thenReturn(expected);
+
+        Page<EventListResponse> result = eventService.findPage(pageable, "status", null);
+
+        assertThat(result).isEqualTo(expected);
+        verify(eventRepository).findEventPage(expectedPageable, null);
+    }
+
+    @Test
+    void findPage_withUnsupportedSortBy_throwsIllegalArgumentException() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(0, 10);
+
+        assertThatThrownBy(() -> eventService.findPage(pageable, "latest", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("latest");
+    }
+
+    @Test
+    void findPage_withSupportedStatus_passesStatusFilterToRepository() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Pageable expectedPageable = PageRequest.of(0, 10, Sort.unsorted());
+        Page<EventListResponse> expected = new PageImpl<>(List.of());
+
+        when(eventRepository.findEventPage(expectedPageable, "진행중")).thenReturn(expected);
+
+        Page<EventListResponse> result = eventService.findPage(pageable, null, "진행중");
+
+        assertThat(result).isEqualTo(expected);
+        verify(eventRepository).findEventPage(expectedPageable, "진행중");
+    }
+
+    @Test
+    void findPage_withUnsupportedStatus_stillPassesRawStatusToRepository() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        EventService eventService = new EventService(eventRepository);
+        PageRequest pageable = PageRequest.of(0, 10);
+        Pageable expectedPageable = PageRequest.of(0, 10, Sort.unsorted());
+        Page<EventListResponse> expected = new PageImpl<>(List.of());
+
+        when(eventRepository.findEventPage(expectedPageable, "알수없음")).thenReturn(expected);
+
+        Page<EventListResponse> result = eventService.findPage(pageable, null, "알수없음");
+
+        assertThat(result).isEqualTo(expected);
+        verify(eventRepository).findEventPage(expectedPageable, "알수없음");
     }
 
     @Test

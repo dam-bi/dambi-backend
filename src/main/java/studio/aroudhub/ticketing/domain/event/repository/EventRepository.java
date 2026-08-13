@@ -7,12 +7,16 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
+import studio.aroudhub.ticketing.domain.event.repository.request.EventStatus;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 
 public interface EventRepository extends JpaRepository<Event, Integer> {
 
     @Query("""
-            select new studio.aroudhub.ticketing.domain.event.repository.EventListResponse(
+            select new studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse(
                 e.eventId,
                 e.title,
                 c.imgUrl,
@@ -27,7 +31,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     List<EventListResponse> findEventList();
 
     @Query("""
-            select new studio.aroudhub.ticketing.domain.event.repository.EventListResponse(
+            select new studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse(
                 e.eventId,
                 e.title,
                 c.imgUrl,
@@ -37,19 +41,19 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             )
             from Event e
             join e.concert c
-            order by e.startDate asc, e.eventId asc
+            where :status is null or e.status = :status
             """)
-    Page<EventListResponse> findEventPage(Pageable pageable);
+    Page<EventListResponse> findEventPage(Pageable pageable,  @Param("status") String status);
 
     @Query("""
-            select new studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse(
+            select new studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse(
                 e.eventId,
                 e.title,
                 e.description,
                 e.status,
                 e.startDate,
                 e.endDate,
-                new studio.aroudhub.ticketing.domain.event.repository.ConcertResponse(
+                new studio.aroudhub.ticketing.domain.event.repository.response.ConcertResponse(
                     c.concertId,
                     c.title,
                     c.imgUrl,

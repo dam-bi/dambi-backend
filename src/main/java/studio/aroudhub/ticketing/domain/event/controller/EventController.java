@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.service.EventService;
 
 @RestController
@@ -22,12 +22,15 @@ public class EventController {
     }
 
     @GetMapping
+    // GET /api/events
     public Page<EventListResponse> eventMain(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String status
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return eventService.findPage(pageable);
+        return eventService.findPage(pageable, sortBy, status);
     }
 
     @GetMapping("/{eventID}")

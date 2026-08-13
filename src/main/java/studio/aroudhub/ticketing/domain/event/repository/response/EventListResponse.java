@@ -1,7 +1,7 @@
-package studio.aroudhub.ticketing.domain.event.repository;
+package studio.aroudhub.ticketing.domain.event.repository.response;
 
 import java.time.LocalDate;
-import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
+
 import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
 
 public record EventListResponse(

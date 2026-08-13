@@ -1,6 +1,8 @@
 package studio.aroudhub.ticketing.domain.event.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,9 +26,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.ConcertResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.service.EventService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
@@ -55,7 +57,7 @@ class EventControllerTest {
                 )
         ));
 
-        when(eventService.findPage(any())).thenReturn(fakeEvents);
+        when(eventService.findPage(any(), isNull(), isNull())).thenReturn(fakeEvents);
 
         // Page 응답은 content 배열 아래에 실제 목록이 직렬화된다.
         mockMvc.perform(get("/api/events"))
@@ -68,14 +70,14 @@ class EventControllerTest {
                 .andExpect(jsonPath("$.content[0].eventStartDate").value("2026-07-05"))
                 .andExpect(jsonPath("$.content[0].eventEndDate").value("2026-07-31"));
 
-        verify(eventService).findPage(any());
+        verify(eventService).findPage(any(), isNull(), isNull());
     }
 
     @Test
     void getEvents_returnsBadRequestJsonWhenServiceThrowsIllegalArgumentException() throws Exception {
         doThrow(new IllegalArgumentException("Event lookup failed."))
                 .when(eventService)
-                .findPage(any());
+                .findPage(any(), isNull(), isNull());
 
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isBadRequest())
@@ -83,7 +85,22 @@ class EventControllerTest {
                 .andExpect(jsonPath("$.isSuccess").value(false))
                 .andExpect(jsonPath("$.message").value("Event lookup failed."));
 
-        verify(eventService).findPage(any());
+        verify(eventService).findPage(any(), isNull(), isNull());
+    }
+
+    @Test
+    void getEvents_withSortByAndStatus_passesQueryParametersToService() throws Exception {
+        Page<EventListResponse> fakeEvents = new PageImpl<>(List.of());
+
+        when(eventService.findPage(any(), eq("status"), eq("진행중"))).thenReturn(fakeEvents);
+
+        mockMvc.perform(get("/api/events")
+                        .param("sortBy", "status")
+                        .param("status", "진행중"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        verify(eventService).findPage(any(), eq("status"), eq("진행중"));
     }
 
     @Test
