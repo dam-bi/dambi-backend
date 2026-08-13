@@ -72,7 +72,8 @@ class ConcertEntityStructureTest {
         assertColumnName("imgUrl", "img_url");
         assertColumnName("bookingCnt", "booking_cnt");
         assertColumnName("createdAt", "created_at");
-        assertColumnName("age_rating", "age_rating");
+        assertColumnName("status", "status");
+        assertColumnName("ageRating", "age_rating");
     }
 
     private static void assertColumnName(String fieldName, String expectedColumnName) throws NoSuchFieldException {

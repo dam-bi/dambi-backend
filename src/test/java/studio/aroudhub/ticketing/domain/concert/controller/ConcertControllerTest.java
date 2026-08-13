@@ -1,6 +1,8 @@
 package studio.aroudhub.ticketing.domain.concert.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -21,7 +24,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import studio.aroudhub.ticketing.domain.concert.repository.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertDetailResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertListResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertPriceResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ConcertScheduleResponse;
+import studio.aroudhub.ticketing.domain.concert.repository.DTO.response.ShowListResponse;
 import studio.aroudhub.ticketing.domain.concert.service.ConcertService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
@@ -38,89 +45,105 @@ class ConcertControllerTest {
     private ConcertService concertService;
 
     @Test
+    @DisplayName("콘서트가 존재하면 200 OK와 콘서트 목록을 반환한다")
     void getConcerts_returnsPagedConcertList() throws Exception {
-        // 콘서트 목록 조회 시 각 항목이 db.json 기준의 전체 콘서트 정보를 담아 반환되는지 확인한다.
         Page<ConcertListResponse> page = new PageImpl<>(List.of(
                 new ConcertListResponse(
                         1,
-                        3,
                         "Jazz at the River",
                         "https://cdn.example.com/posters/jazz-river.jpg",
-                        "Sunset session by the river",
                         87,
-                        LocalDate.of(2026, 6, 20),
                         "Blue Hall",
-                        150,
                         LocalDate.of(2026, 7, 20),
-                        LocalDate.of(2026, 7, 27),
-                        "12+",
-                        List.of(
-                                new ConcertListResponse.PriceItem("VIP", 99000),
-                                new ConcertListResponse.PriceItem("R", 77000)
-                        ),
-                        List.of(
-                                new ConcertListResponse.DateItem(
-                                        1,
-                                        LocalDate.of(2026, 7, 20),
-                                        List.of(new ConcertListResponse.ShowListItem(1, "19:00"))
-                                )
-                        )
+                        LocalDate.of(2026, 7, 27)
                 )
         ));
 
-        when(concertService.findPage(any())).thenReturn(page);
+        when(concertService.findPage(any(), eq(null), eq(null))).thenReturn(page);
 
         mockMvc.perform(get("/api/concerts")
                         .param("page", "0")
                         .param("size", "12"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].concert_id").value(1))
-                .andExpect(jsonPath("$.content[0].venue_id").value(3))
-                .andExpect(jsonPath("$.content[0].title").value("Jazz at the River"))
-                .andExpect(jsonPath("$.content[0].img_url").value("https://cdn.example.com/posters/jazz-river.jpg"))
-                .andExpect(jsonPath("$.content[0].description").value("Sunset session by the river"))
-                .andExpect(jsonPath("$.content[0].booking_cnt").value(87))
-                .andExpect(jsonPath("$.content[0].created_at").value("2026-06-20"))
+                .andExpect(jsonPath("$.content[0].concertId").value(1))
+                .andExpect(jsonPath("$.content[0].concertTitle").value("Jazz at the River"))
+                .andExpect(jsonPath("$.content[0].imgUrl").value("https://cdn.example.com/posters/jazz-river.jpg"))
+                .andExpect(jsonPath("$.content[0].bookingCnt").value(87))
                 .andExpect(jsonPath("$.content[0].venue").value("Blue Hall"))
-                .andExpect(jsonPath("$.content[0].running_time").value(150))
-                .andExpect(jsonPath("$.content[0].start_date").value("2026-07-20"))
-                .andExpect(jsonPath("$.content[0].end_date").value("2026-07-27"))
-                .andExpect(jsonPath("$.content[0].age_rating").value("12+"))
-                .andExpect(jsonPath("$.content[0].price[0].price").value(99000))
-                .andExpect(jsonPath("$.content[0].date[0].show_list[0].time").value("19:00"));
+                .andExpect(jsonPath("$.content[0].concertStartDate").value("2026-07-20"))
+                .andExpect(jsonPath("$.content[0].concertEndDate").value("2026-07-27"));
 
-        verify(concertService).findPage(any());
+        verify(concertService).findPage(any(), eq(null), eq(null));
+    }
+
+    @Test
+    void getConcerts_withSortBy_passesSortToService() throws Exception {
+        Page<ConcertListResponse> page = new PageImpl<>(List.of());
+
+        when(concertService.findPage(any(), eq("높은가격순"), eq(null))).thenReturn(page);
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "높은가격순"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        verify(concertService).findPage(any(), eq("높은가격순"), eq(null));
+    }
+
+    @Test
+    void getConcerts_withStatus_passesStatusToService() throws Exception {
+        Page<ConcertListResponse> page = new PageImpl<>(List.of());
+
+        when(concertService.findPage(any(), eq(null), eq("OPEN"))).thenReturn(page);
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("status", "OPEN"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        verify(concertService).findPage(any(), eq(null), eq("OPEN"));
+    }
+
+    @Test
+    void getConcerts_whenSortByUnsupported_returnsNotFound() throws Exception {
+        when(concertService.findPage(any(), eq("최신순"), eq(null)))
+                .thenThrow(new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "지원하지 않는 정렬 방식입니다."
+                ));
+
+        mockMvc.perform(get("/api/concerts")
+                        .param("sortBy", "최신순"))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                        .hasMessageContaining("지원하지 않는 정렬 방식입니다."));
     }
 
     @Test
     void getConcert_returnsConcertDetail() throws Exception {
-        // 콘서트 상세 조회 시 db.json 샘플 형식의 snake_case JSON이 반환되는지 확인한다.
-        ConcertListResponse detail = new ConcertListResponse(
+        ConcertDetailResponse detail = new ConcertDetailResponse(
                 2,
-                7,
                 "Midnight Synthwave",
                 "https://cdn.example.com/posters/midnight-synthwave.jpg",
-                "Late night electronic showcase",
+                "Arena synthwave show",
                 548,
-                LocalDate.of(2026, 7, 1),
+                LocalDate.of(2026, 7, 2),
                 "Aurora Dome",
-                140,
+                135,
                 LocalDate.of(2026, 8, 12),
                 LocalDate.of(2026, 8, 15),
                 "15+",
                 List.of(
-                        new ConcertListResponse.PriceItem("VIP", 132000),
-                        new ConcertListResponse.PriceItem("R", 99000)
+                        new ConcertPriceResponse(1, "VIP", 132000),
+                        new ConcertPriceResponse(2, "R", 99000)
                 ),
                 List.of(
-                        new ConcertListResponse.DateItem(
+                        new ConcertScheduleResponse(
                                 1,
                                 LocalDate.of(2026, 8, 12),
-                                List.of(
-                                        new ConcertListResponse.ShowListItem(1, "20:00"),
-                                        new ConcertListResponse.ShowListItem(2, "22:30")
-                                )
+                                List.of(new ShowListResponse(1, java.time.LocalTime.of(20, 0)))
                         )
                 )
         );
@@ -130,30 +153,25 @@ class ConcertControllerTest {
         mockMvc.perform(get("/api/concerts/2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.concert_id").value(2))
-                .andExpect(jsonPath("$.venue_id").value(7))
-                .andExpect(jsonPath("$.title").value("Midnight Synthwave"))
-                .andExpect(jsonPath("$.img_url").value("https://cdn.example.com/posters/midnight-synthwave.jpg"))
-                .andExpect(jsonPath("$.description").value("Late night electronic showcase"))
-                .andExpect(jsonPath("$.booking_cnt").value(548))
-                .andExpect(jsonPath("$.created_at").value("2026-07-01"))
+                .andExpect(jsonPath("$.concertId").value(2))
+                .andExpect(jsonPath("$.concertTitle").value("Midnight Synthwave"))
+                .andExpect(jsonPath("$.imgUrl").value("https://cdn.example.com/posters/midnight-synthwave.jpg"))
+                .andExpect(jsonPath("$.bookingCnt").value(548))
                 .andExpect(jsonPath("$.venue").value("Aurora Dome"))
-                .andExpect(jsonPath("$.running_time").value(140))
-                .andExpect(jsonPath("$.start_date").value("2026-08-12"))
-                .andExpect(jsonPath("$.end_date").value("2026-08-15"))
-                .andExpect(jsonPath("$.age_rating").value("15+"))
-                .andExpect(jsonPath("$.price[0].rating").value("VIP"))
-                .andExpect(jsonPath("$.price[0].price").value(132000))
-                .andExpect(jsonPath("$.date[0].date").value("2026-08-12"))
-                .andExpect(jsonPath("$.date[0].show_list[0].id").value(1))
-                .andExpect(jsonPath("$.date[0].show_list[0].time").value("20:00"));
+                .andExpect(jsonPath("$.concertStartDate").value("2026-08-12"))
+                .andExpect(jsonPath("$.concertEndDate").value("2026-08-15"))
+                .andExpect(jsonPath("$.ageRating").value("15+"))
+                .andExpect(jsonPath("$.seatList[0].rating").value("VIP"))
+                .andExpect(jsonPath("$.seatList[0].price").value(132000))
+                .andExpect(jsonPath("$.schedule[0].date").value("2026-08-12"))
+                .andExpect(jsonPath("$.schedule[0].showList[0].showId").value(1))
+                .andExpect(jsonPath("$.schedule[0].showList[0].time").value("20:00:00"));
 
         verify(concertService).findDetail(2);
     }
 
     @Test
     void getConcert_whenConcertMissing_returnsNotFound() throws Exception {
-        // 존재하지 않는 콘서트 ID로 조회하면 404 응답이 반환되는지 확인한다.
         when(concertService.findDetail(999))
                 .thenThrow(new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND,
