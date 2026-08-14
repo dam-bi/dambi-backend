@@ -26,11 +26,10 @@ public class EventController {
     public Page<EventListResponse> eventMain(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String status
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return eventService.findPage(pageable, sortBy, status);
+        return eventService.findPage(pageable, status);
     }
 
     @GetMapping("/{eventID}")

@@ -26,8 +26,8 @@ public class Event {
     @Column(name = "description", nullable = false, length = 255)
     private String description;
 
-    @Column(name="created_at")
-    private LocalDate createAt;
+    @Column(name = "created_at")
+    private LocalDate createdAt;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;

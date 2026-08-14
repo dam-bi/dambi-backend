@@ -25,7 +25,6 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
             )
             from Event e
             join e.concert c
-            order by e.startDate asc, e.eventId asc
             """)
     List<EventListResponse> findEventList();
 

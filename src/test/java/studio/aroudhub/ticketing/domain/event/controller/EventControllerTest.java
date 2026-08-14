@@ -15,11 +15,11 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -57,9 +57,8 @@ class EventControllerTest {
                 )
         ));
 
-        when(eventService.findPage(any(), isNull(), isNull())).thenReturn(fakeEvents);
+        when(eventService.findPage(any(), isNull())).thenReturn(fakeEvents);
 
-        // Page 응답은 content 배열 아래에 실제 목록이 직렬화된다.
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -70,14 +69,14 @@ class EventControllerTest {
                 .andExpect(jsonPath("$.content[0].eventStartDate").value("2026-07-05"))
                 .andExpect(jsonPath("$.content[0].eventEndDate").value("2026-07-31"));
 
-        verify(eventService).findPage(any(), isNull(), isNull());
+        verify(eventService).findPage(any(), isNull());
     }
 
     @Test
     void getEvents_returnsBadRequestJsonWhenServiceThrowsIllegalArgumentException() throws Exception {
         doThrow(new IllegalArgumentException("Event lookup failed."))
                 .when(eventService)
-                .findPage(any(), isNull(), isNull());
+                .findPage(any(), isNull());
 
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isBadRequest())
@@ -85,22 +84,21 @@ class EventControllerTest {
                 .andExpect(jsonPath("$.isSuccess").value(false))
                 .andExpect(jsonPath("$.message").value("Event lookup failed."));
 
-        verify(eventService).findPage(any(), isNull(), isNull());
+        verify(eventService).findPage(any(), isNull());
     }
 
     @Test
-    void getEvents_withSortByAndStatus_passesQueryParametersToService() throws Exception {
+    void getEvents_withStatus_passesQueryParametersToService() throws Exception {
         Page<EventListResponse> fakeEvents = new PageImpl<>(List.of());
 
-        when(eventService.findPage(any(), eq("status"), eq("진행중"))).thenReturn(fakeEvents);
+        when(eventService.findPage(any(), eq("SCHEDULED"))).thenReturn(fakeEvents);
 
         mockMvc.perform(get("/api/events")
-                        .param("sortBy", "status")
-                        .param("status", "진행중"))
+                        .param("status", "SCHEDULED"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
-        verify(eventService).findPage(any(), eq("status"), eq("진행중"));
+        verify(eventService).findPage(any(), eq("SCHEDULED"));
     }
 
     @Test
