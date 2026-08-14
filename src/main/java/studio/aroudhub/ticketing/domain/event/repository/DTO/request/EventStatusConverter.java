@@ -1,8 +1,6 @@
-package studio.aroudhub.ticketing.domain.event.repository.request;
+package studio.aroudhub.ticketing.domain.event.repository.DTO.request;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-
-import java.lang.annotation.Annotation;
 
 @Component
 public class EventStatusConverter implements Converter<String, EventStatus> {

@@ -1,4 +1,4 @@
-package studio.aroudhub.ticketing.domain.event.repository.response;
+package studio.aroudhub.ticketing.domain.event.repository.DTO.response;
 
 import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
 

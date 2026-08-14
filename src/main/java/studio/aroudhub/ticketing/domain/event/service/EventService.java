@@ -10,8 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 
 @Service
@@ -23,32 +23,28 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    // eventID 기준 단건 조회.
-    public EventDetailResponse findDetail(int eventID){
+    public EventDetailResponse findDetail(int eventID) {
         return eventRepository.findEventDetailByEventId(eventID)
-                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event 목록을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "이벤트 상세 정보를 찾을 수 없습니다."));
     }
 
-    // GET /api/events
-    public Page<EventListResponse> findPage(Pageable pageable, String sortBy, String status){
-
+    public Page<EventListResponse> findPage(Pageable pageable, String status) {
         String normalizedStatus = (status == null || status.isBlank()) ? null : status;
-
-        Sort sort = null; // sort 방식 저장할 변수 sort.
-        // if문: sortBy 기준이 없을 시, sort 진행하지 않음.
-        if(sortBy == null || sortBy.isBlank()){ sort = Sort.unsorted(); }
-        else{
-            sort = switch (sortBy){
-                case "status" -> Sort.by(Sort.Direction.DESC, "status");
-                default -> throw new IllegalArgumentException(sortBy + "은(는) 지원하지 않는 정렬 기준입니다.");
-            };
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Objects.requireNonNull(sort)
+        );
+        try {
+            return eventRepository.findEventPage(sortedPageable, normalizedStatus);
+        } catch (IllegalArgumentException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException("이벤트 정보 조회에 실패했습니다.", exception);
         }
-
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Objects.requireNonNull(sort));
-        return eventRepository.findEventPage(sortedPageable, normalizedStatus);
     }
 
-    //   SELECT * FROM event JOIN ON event.concert_id = concert.concert_id;
     public List<EventListResponse> findAllWithConcert() {
         return eventRepository.findEventList();
     }

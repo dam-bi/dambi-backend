@@ -1,4 +1,4 @@
-package studio.aroudhub.ticketing.domain.event.repository.request;
+package studio.aroudhub.ticketing.domain.event.repository.DTO.request;
 
 import lombok.Getter;
 

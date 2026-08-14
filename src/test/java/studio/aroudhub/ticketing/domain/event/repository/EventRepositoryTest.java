@@ -14,8 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 import studio.aroudhub.ticketing.domain.concert.repository.entity.Concert;
 import studio.aroudhub.ticketing.domain.event.repository.entity.Event;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.venue.repository.entity.Venue;
 
 @DataJpaTest
