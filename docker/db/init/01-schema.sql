@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS concert (
     running_time INTEGER,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    age_rating VARCHAR(255) NOT NULL,ㄷㅍ
+    age_rating VARCHAR(255) NOT NULL,
     CONSTRAINT fk_concert_venue
         FOREIGN KEY (venue_id) REFERENCES venue (venue_id)
 );
