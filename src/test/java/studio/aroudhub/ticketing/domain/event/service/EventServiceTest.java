@@ -16,9 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.response.ConcertResponse;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.ConcertResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 
 class EventServiceTest {

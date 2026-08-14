@@ -1,9 +1,8 @@
-package studio.aroudhub.ticketing.domain.event.repository.request;
+package studio.aroudhub.ticketing.domain.event.repository.DTO.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-
 class EventStatusTest {
 
     @Test

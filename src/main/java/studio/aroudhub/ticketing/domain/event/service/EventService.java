@@ -10,8 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventDetailResponse;
-import studio.aroudhub.ticketing.domain.event.repository.response.EventListResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventDetailResponse;
+import studio.aroudhub.ticketing.domain.event.repository.DTO.response.EventListResponse;
 import studio.aroudhub.ticketing.domain.event.repository.EventRepository;
 
 @Service
