@@ -24,16 +24,19 @@ public class AuthService {
     }
 
     @Transactional
+    // POST /api/auth/login
     public void login() {
-        //
+        // 이메일, 패스워드로 로그인 확인.
+
     }
 
     @Transactional
+    // POST /api/auth/signup
     public void signup(SignupRequest req) {
         String userName = req.name().trim();
         String email = req.email().trim();
         String rawPassword = req.password().trim();
-        String phoneNumber = req.phoneNumber().trim();
+        String phoneNumber = req.phone().trim();
 
         // 같은 이메일이 이미 존재하면 회원가입을 막는다.
         Optional<User> checkUser = authRepository.findByEmail(email);

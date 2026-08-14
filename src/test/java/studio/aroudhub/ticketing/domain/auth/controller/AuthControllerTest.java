@@ -43,7 +43,7 @@ class AuthControllerTest {
                                   "name": "Alice",
                                   "email": "alice@example.com",
                                   "password": "plain-password",
-                                  "phoneNumber": "010-1111-2222"
+                                  "phone": "010-1111-2222"
                                 }
                                 """))
                 .andExpect(status().isCreated())
@@ -62,7 +62,7 @@ class AuthControllerTest {
                                   "name": "Alice",
                                   "email": "   ",
                                   "password": "plain-password",
-                                  "phoneNumber": "010-1111-2222"
+                                  "phone": "010-1111-2222"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
@@ -83,7 +83,7 @@ class AuthControllerTest {
                                   "name": "Alice",
                                   "email": "alice@example.com",
                                   "password": "plain-password",
-                                  "phoneNumber": "010-1111-2222"
+                                  "phone": "010-1111-2222"
                                 }
                                 """))
                 .andExpect(status().isConflict());

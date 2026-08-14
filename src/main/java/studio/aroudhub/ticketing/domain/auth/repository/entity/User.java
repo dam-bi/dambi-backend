@@ -29,13 +29,13 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "phone_number", nullable = false, length = 255)
-    private String phoneNumber;
+    @Column(name = "phone", nullable = false, length = 255)
+    private String phone;
 
-    public User(String name, String email, String password, String phoneNumber) {
+    public User(String name, String email, String password, String phone) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.phoneNumber = phoneNumber;
+        this.phone = phone;
     }
 }

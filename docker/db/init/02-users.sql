@@ -1,4 +1,4 @@
-INSERT INTO users (users_id, name, password, email, phone_number)
+INSERT INTO users (users_id, name, password, email, phone)
 VALUES
     (
         1,
@@ -11,7 +11,7 @@ ON CONFLICT (email) DO UPDATE
 SET
     name = EXCLUDED.name,
     password = EXCLUDED.password,
-    phone_number = EXCLUDED.phone_number;
+    phone = EXCLUDED.phone;
 
 SELECT setval(
     pg_get_serial_sequence('users', 'users_id'),
