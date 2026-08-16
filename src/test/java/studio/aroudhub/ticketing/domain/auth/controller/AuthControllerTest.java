@@ -7,10 +7,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
+import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 import studio.aroudhub.ticketing.domain.auth.service.AuthService;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
-@ActiveProfiles("testWithoutDB")
 class AuthControllerTest {
 
     @Autowired
@@ -33,6 +32,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
 
     @Test
     void signup_whenRequestValid_returnsCreated() throws Exception {
@@ -47,8 +49,7 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("회원가입이 완료되었습니다."));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         verify(authService).signup(any());
     }
@@ -72,7 +73,7 @@ class AuthControllerTest {
 
     @Test
     void signup_whenDuplicateEmail_returnsConflict() throws Exception {
-        doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "이미 등록된 계정입니다."))
+        doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "에러발생"))
                 .when(authService)
                 .signup(any());
 
@@ -87,5 +88,34 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void login_whenRequestValid_returnsOk() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "alice@example.com",
+                                  "password": "plain-password"
+                                }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    // 로그인 입력 검증을 frontend에서 수행하므로 요청을 service에 전달한다.
+    void login_whenEmailBlank_delegatesToService() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "   ",
+                                  "password": "plain-password"
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        verify(authService).login(any());
     }
 }

@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.auth.repository.AuthRepository;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.LoginRequest;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.LoginResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.SignupRequest;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.User;
+import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 
 import java.util.Optional;
 
@@ -26,7 +29,8 @@ class AuthServiceTest {
     void signup_encodesPasswordAndSavesUser() {
         AuthRepository authRepository = mock(AuthRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(authRepository, passwordEncoder);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
         SignupRequest request = new SignupRequest("  Alice  ", "  alice@example.com  ", "  plain-password  ", "  010-1111-2222  ");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
@@ -44,7 +48,8 @@ class AuthServiceTest {
     void signup_whenEmailAlreadyExists_throwsConflict() {
         AuthRepository authRepository = mock(AuthRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(authRepository, passwordEncoder);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
         SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(mock(User.class)));
@@ -62,7 +67,8 @@ class AuthServiceTest {
     void signup_whenUniqueConstraintFails_throwsConflict() {
         AuthRepository authRepository = mock(AuthRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(authRepository, passwordEncoder);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
         SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
@@ -75,5 +81,64 @@ class AuthServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void login_whenEmailDoesNotExist_throwsUnauthorized() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
+        LoginRequest request = new LoginRequest(" alice@example.com ", " plain-password ");
+
+        when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        verify(authRepository).findByEmail("alice@example.com");
+        verifyNoInteractions(passwordEncoder, jwtTokenProvider);
+    }
+
+    @Test
+    void login_whenPasswordDoesNotMatch_throwsUnauthorized() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
+        LoginRequest request = new LoginRequest("alice@example.com", "plain-password");
+        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+
+        when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(savedUser));
+        when(passwordEncoder.matches("plain-password", "encoded-password")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        verify(passwordEncoder).matches("plain-password", "encoded-password");
+        verifyNoInteractions(jwtTokenProvider);
+    }
+
+    @Test
+    void login_whenCredentialsValid_returnsAccessToken() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider);
+        LoginRequest request = new LoginRequest(" alice@example.com ", " plain-password ");
+        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+
+        when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(savedUser));
+        when(passwordEncoder.matches("plain-password", "encoded-password")).thenReturn(true);
+        when(jwtTokenProvider.generateToken("alice@example.com")).thenReturn("jwt-token");
+
+        LoginResponse response = authService.login(request);
+
+        assertThat(response.accessToken()).isEqualTo("jwt-token");
+        verify(jwtTokenProvider).generateToken("alice@example.com");
     }
 }

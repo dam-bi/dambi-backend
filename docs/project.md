@@ -102,7 +102,7 @@
 
 | **입력**                | **처리**                                         | **출력**    | **참고**                        |
 | ----------------------- | ------------------------------------------------ | ----------- | ------------------------------- |
-| loginId<br><br>password | 사용자 조회<br><br>비밀번호 검증<br><br>JWT 발급 | accessToken | 추후 refreshToken API 추가 예정 |
+| email<br><br>password | 사용자 조회<br><br>비밀번호 검증<br><br>JWT 발급 | accessToken | 추후 refreshToken API 추가 예정 |
 
 ### 3.1.3 로그아웃
 
@@ -195,13 +195,13 @@
 
 # 4\. API 명세서
 
-**📌 기본 규칙** Base URL: /api/v1 | 인증 필요 API: Authorization: Bearer {accessToken} | 응답 형식: JSON
+**📌 기본 규칙** Base URL: /api | 인증 필요 API: Authorization: Bearer {accessToken} | 응답 형식: JSON
 
 ## 4.1 Auth
 
 | **기능**         | **Method** | **URI**           | **설명**                                  |
 | ---------------- | ---------- | ----------------- | ----------------------------------------- |
-| 로그인           | **POST**   | /auth/login       | loginId + password → JWT accessToken 발급 |
+| 로그인           | **POST**   | /auth/login       | email + password → JWT accessToken 발급 |
 | 회원가입         | **POST**   | /auth/signup      | 사용자 생성. 중복 ID/이메일 검증 포함     |
 | 로그아웃         | **POST**   | /auth/logout      | accessToken 무효화 (토큰 블랙리스트)      |
 | ID 중복 체크     | **GET**    | /auth/check-id    | 포커스아웃 시 실시간 중복 검사            |

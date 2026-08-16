@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(false, exception.getMessage()));
+                .body(new ErrorResponse(exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -25,12 +25,12 @@ public class GlobalExceptionHandler {
         String message = fieldError != null ? fieldError.getDefaultMessage() : "잘못된 요청입니다.";
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(false, message));
+                .body(new ErrorResponse(message));
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException exception) {
         return ResponseEntity.status(exception.getStatusCode())
-                .body(new ErrorResponse(false, exception.getReason()));
+                .body(new ErrorResponse(exception.getReason()));
     }
 }

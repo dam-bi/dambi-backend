@@ -33,7 +33,6 @@ Use the `local` Spring profile for the Dockerized backend.
 Reason:
 
 - `local` already enables datasource, JPA, repository, and database-backed auth
-- `testWithoutDB` is only for tests that must run without DB/JPA/repository auto-configuration
 - `dev` and `prod` should not be used for frontend developers' local Docker environments
 
 Required backend environment variables:
