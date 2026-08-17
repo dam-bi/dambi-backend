@@ -5,9 +5,11 @@ spring:
     default: local
 
 jwt:
-  # base64
-  secret: ${JWT_SECRET}
-  access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS} #초단위
+
+  access-secret: ${JWT_ACCESS_SECRET} # base64
+  refresh-secret: ${JWT_REFRESH_SECRET} # base64
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS} #access token 만료기간
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS} #refresh token 만료기간
 
 ---
 # local: local DB enabled runtime

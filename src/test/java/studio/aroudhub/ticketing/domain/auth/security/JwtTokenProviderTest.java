@@ -12,10 +12,10 @@ class JwtTokenProviderTest {
     void generateAndParseAccessToken() {
         JwtTokenProvider jwtTokenProvider = new JwtTokenProvider("c2VjdXJlLXRlc3Qta2V5LWZvci1qd3QtdGVzdGluZy0xMjM0NTY=", 3600L);
 
-        String token = jwtTokenProvider.generateToken("alice@example.com");
+        String token = jwtTokenProvider.generateAccessToken("alice@example.com");
 
         assertThat(jwtTokenProvider.getEmail(token)).isEqualTo("alice@example.com");
-        assertThat(jwtTokenProvider.isTokenExpired(token)).isFalse();
+        assertThat(jwtTokenProvider.isAccessTokenExpired(token)).isFalse();
     }
 
     @Test

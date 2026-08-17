@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try{
             // 토큰 만료 검사
-            if (jwtTokenProvider.isTokenExpired(token)) {
+            if (jwtTokenProvider.isAccessTokenExpired(token)) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 만료되었습니다.");
                 return;
             }

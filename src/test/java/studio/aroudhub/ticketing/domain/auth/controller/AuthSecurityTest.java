@@ -52,7 +52,7 @@ class AuthSecurityTest {
     @Test
     // 만료되지 않은 token으로 보호된 로그아웃 endpoint에 접근한다.
     void logout_withValidToken_isPermitted() throws Exception {
-        when(jwtTokenProvider.isTokenExpired("valid-token")).thenReturn(false);
+        when(jwtTokenProvider.isAccessTokenExpired("valid-token")).thenReturn(false);
         when(jwtTokenProvider.getEmail("valid-token")).thenReturn("alice@example.com");
 
         mockMvc.perform(post("/api/auth/logout")
@@ -63,7 +63,7 @@ class AuthSecurityTest {
     @Test
     // 잘못된 token은 401 응답을 반환한다.
     void login_withInvalidToken_isUnauthorized() throws Exception {
-        when(jwtTokenProvider.isTokenExpired("invalid-token")).thenReturn(false);
+        when(jwtTokenProvider.isAccessTokenExpired("invalid-token")).thenReturn(false);
         when(jwtTokenProvider.getEmail("invalid-token")).thenThrow(new RuntimeException("invalid token"));
 
         mockMvc.perform(post("/api/auth/login")

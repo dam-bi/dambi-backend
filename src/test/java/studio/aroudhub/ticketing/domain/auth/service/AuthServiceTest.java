@@ -134,11 +134,11 @@ class AuthServiceTest {
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(savedUser));
         when(passwordEncoder.matches("plain-password", "encoded-password")).thenReturn(true);
-        when(jwtTokenProvider.generateToken("alice@example.com")).thenReturn("jwt-token");
+        when(jwtTokenProvider.generateAccessToken("alice@example.com")).thenReturn("jwt-token");
 
         LoginResponse response = authService.login(request);
 
         assertThat(response.accessToken()).isEqualTo("jwt-token");
-        verify(jwtTokenProvider).generateToken("alice@example.com");
+        verify(jwtTokenProvider).generateAccessToken("alice@example.com");
     }
 }
