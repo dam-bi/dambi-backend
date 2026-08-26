@@ -1,0 +1,70 @@
+@baseUrl = http://localhost:8080
+@email = frontend@example.com
+@password = password123!
+
+### 비로그인 사용자는 인증이 필요한 로그아웃 URL에 접근할 수 없다.
+POST {{baseUrl}}/api/auth/logout
+
+> {%
+    client.test("비로그인 로그아웃 요청은 401을 반환한다", () => {
+        client.assert(response.status === 401, `예상 상태: 401, 실제 상태: ${response.status}`);
+    });
+%}
+
+### 로그인 후 Access Token을 이후 요청에 사용할 전역 변수로 저장한다.
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.test("로그인은 200과 Access Token을 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.body.accessToken, "Access Token이 없습니다.");
+    });
+    client.global.set("accessToken", response.body.accessToken);
+%}
+
+### Access Token 만료를 가정해 Refresh Token 쿠키로 Access Token을 재발급받는다.
+POST {{baseUrl}}/api/auth/refresh
+
+> {%
+    client.test("토큰 재발급은 200과 새 Access Token을 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.body.accessToken, "재발급된 Access Token이 없습니다.");
+    });
+    client.global.set("accessToken", response.body.accessToken);
+%}
+
+### 재발급된 Access Token으로 로그아웃하고 Refresh Token 쿠키가 만료됐는지 확인한다.
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("로그아웃은 200과 Refresh Token 쿠키 만료를 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.headers.valueOf("Set-Cookie").includes("Max-Age=0"), "Refresh Token 쿠키가 만료되지 않았습니다.");
+    });
+%}
+
+### 로그아웃 뒤에는 Refresh Token이 삭제되어 재발급할 수 없다.
+POST {{baseUrl}}/api/auth/refresh
+
+> {%
+    client.test("로그아웃 뒤 토큰 재발급은 401을 반환한다", () => {
+        client.assert(response.status === 401, `예상 상태: 401, 실제 상태: ${response.status}`);
+    });
+%}
+
+### 현재 구현은 Access Token 블랙리스트가 없어 만료 전 Access Token은 로그아웃 뒤에도 인증된다.
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("로그아웃 뒤에도 만료 전 Access Token은 200을 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+    });
+%}

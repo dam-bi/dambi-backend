@@ -1,5 +1,6 @@
 package studio.aroudhub.ticketing.domain.auth.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,93 +10,76 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtTokenProvider {
 
+    private static final String ACCESS_TOKEN_SUBJECT = "accessToken";
+    private static final String REFRESH_TOKEN_SUBJECT = "refreshToken";
     private final SecretKey accessSecretKey;
     private final SecretKey refreshSecretKey;
     private final long accessTokenExpSec;
     private final long refreshTokenExpSec;
 
-    // 생성자
+    // Access Token과 Refresh Token의 서명 키 및 만료 시간을 설정한다.
     public JwtTokenProvider(
             @Value("${jwt.access-secret}") String accessSecretKey,
             @Value("${jwt.refresh-secret}") String refreshSecretKey,
             @Value("${jwt.access-token-expiration}") long accessTokenExpSec,
             @Value("${jwt.refresh-token-expiration}") long refreshTokenExpSec
     ) {
-        // 설정값으로 받은 시크릿 문자열을 JWT 서명에 사용할 키로 변환한다.
-        this.accessSecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessSecretKey)); // base64 디코딩
+        this.accessSecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessSecretKey));
         this.refreshSecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecretKey));
         this.accessTokenExpSec = accessTokenExpSec;
         this.refreshTokenExpSec = refreshTokenExpSec;
     }
 
-    // access token 발급.
+    // 이메일을 담은 Access Token을 발급한다.
     public String generateAccessToken(String email) {
-        // 현재 시각을 기준으로 만료 시간이 있는 access token을 생성한다.
         Instant now = Instant.now();
-
         return Jwts.builder()
-                .subject("accessToken")
-                .claim("email", email) // private claim. 로그인 email값
+                .subject(ACCESS_TOKEN_SUBJECT)
+                .claim("email", email)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(accessTokenExpSec)))
                 .signWith(accessSecretKey)
                 .compact();
     }
 
-    // refresh token 발급.
+    // 세션 갱신 전용 Refresh Token을 발급한다.
     public String generateRefreshToken() {
-        // 현재 시간
         Instant now = Instant.now();
-
         return Jwts.builder()
-                .subject("refreshToken")
+                .subject(REFRESH_TOKEN_SUBJECT)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(refreshTokenExpSec)))
                 .signWith(refreshSecretKey)
                 .compact();
     }
 
-    //refresh token 만료시간 반환(DB filed type: timezone)
-    public Date getExpiredTimeFromRefreshToken(String token) {
-        return Jwts.parser()
-                .verifyWith(refreshSecretKey)
-                .build().parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
+    // Refresh Token의 서명과 용도를 검증하고 만료 시각을 반환한다.
+    public Date getRefreshTokenExpiration(String token) {
+        Claims claims = Jwts.parser().verifyWith(refreshSecretKey).build().parseSignedClaims(token).getPayload();
+        if (!REFRESH_TOKEN_SUBJECT.equals(claims.getSubject())) {
+            throw new IllegalArgumentException("Refresh Token 용도가 올바르지 않습니다.");
+        }
+        return claims.getExpiration();
     }
 
-    // access, refresh 동시 발급 메서드 생성 필요한지 고민 중.
-
-    // jwt access token 만료 여부 확인. True: 만료. False: 유효
+    // Access Token의 만료 여부를 확인한다.
     public boolean isAccessTokenExpired(String token) {
-        return Jwts.parser()
-                .verifyWith(accessSecretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration().before(Date.from(Instant.now()));
+        return Jwts.parser().verifyWith(accessSecretKey).build().parseSignedClaims(token)
+                .getPayload().getExpiration().before(Date.from(Instant.now()));
     }
 
-    // jwt refresh token 만료 여부 확인. True: 만료. False: 유효
-    public boolean isRefreshTokenExpired(String token) {
-        return Jwts.parser()
-                .verifyWith(refreshSecretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration().before(Date.from(Instant.now()));
-    }
-
-    // jwt에서 이메일 추출. filter에서 로그인 검증용으로 사용할 예정.
-    public String getEmail(String token){
-            return Jwts.parser().
-                    verifyWith(accessSecretKey)
-                    .build().parseSignedClaims(token) // parseSignedClaims : jwt 형식, 서명 위조 여부, 만료여부, 키 일치 여부 검사
-                    .getPayload()
-                    .get("email", String.class);
+    // Access Token에서 인증 사용자 이메일을 추출한다.
+    public String getEmail(String token) {
+        Claims claims = Jwts.parser().verifyWith(accessSecretKey).build().parseSignedClaims(token).getPayload();
+        if (!ACCESS_TOKEN_SUBJECT.equals(claims.getSubject())) {
+            throw new IllegalArgumentException("Access Token 용도가 올바르지 않습니다.");
+        }
+        return claims.get("email", String.class);
     }
 }

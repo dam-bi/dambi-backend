@@ -26,5 +26,6 @@ class RefreshTokenTest {
         assertThat(refreshIdColumn.name()).isEqualTo("refresh_id");
         assertThat(userColumn.name()).isEqualTo("user_id");
         assertThat(userColumn.referencedColumnName()).isEqualTo("users_id");
+        assertThat(RefreshToken.class.getDeclaredField("token").getAnnotation(Column.class).unique()).isTrue();
     }
 }

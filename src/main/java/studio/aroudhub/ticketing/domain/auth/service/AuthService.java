@@ -1,12 +1,10 @@
 package studio.aroudhub.ticketing.domain.auth.service;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,8 +18,12 @@ import studio.aroudhub.ticketing.domain.auth.repository.entity.RefreshToken;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.User;
 import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 
-import java.util.Date;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Base64;
 
 @Service
 public class AuthService {
@@ -32,6 +34,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    // 인증에 필요한 저장소와 토큰 발급기를 주입한다.
     public AuthService(AuthRepository authRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, RefreshTokenRepository refreshTokenRepository) {
         this.authRepository = authRepository;
         this.passwordEncoder = passwordEncoder;
@@ -39,62 +42,57 @@ public class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    /*
-    * 로그인 처리 메서드
-    * POST /api/auth/login
-    * 기능
-    *
-     */
+    // 이메일과 비밀번호를 검증하고 Access/Refresh Token을 발급한다.
     @Transactional
     public LoginResponse login(LoginRequest req) {
         String email = req.email().trim();
-        String rawPassword = req.password().trim();
+        String rawPassword = req.password();
 
-        // DB에 일치하는 이메일 있는지 검사.
+        // email 검증
         User user = authRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "가입되지 않았거나 틀린 이메일입니다"));
-
-        // PW가 일치하는지 검사
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "가입되지 않았거나 이메일이 올바르지 않습니다."));
+        // pw 검증
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "패스워드가 틀렸습니다");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
         }
 
-        // jwt access token, refresh token 발급
-        String accessToken = jwtTokenProvider.generateAccessToken(email);
-        String refreshToken = jwtTokenProvider.generateRefreshToken();
-        Date refreshTokenExpireDate = jwtTokenProvider.getExpiredTimeFromRefreshToken(refreshToken);
-
-        // 발급한 refresh token을 DB에 저장
-        RefreshToken refreshTokenEntity = new RefreshToken(user.getUsersId(), refreshToken, refreshTokenExpireDate);
-        this.saveRefreshToken(refreshTokenEntity);
-
-        // loginResponse 생성
-        UserInfo userInfo = new UserInfo(user.getName(), user.getEmail(), user.getPhone());
-        return new LoginResponse(accessToken, userInfo);
+        return issueTokens(user);
     }
 
-    /*
-    * 발급한 refresh token hash, user table user_id을 db에 저장
-     */
+    // Refresh Token을 검증하고 기존 토큰을 교체해 새 Access Token을 발급한다.
     @Transactional
-    private void saveRefreshToken(RefreshToken refreshToken) {
-        refreshTokenRepository.save(refreshToken);
-    }
-
-    // refresh token 유효한 상황에서 accessToken 재발급
-    private void reissueAccessToken(String refreshToken){
-        // 1. refresh token 유효한지 검증
-        if(jwtTokenProvider.isRefreshTokenExpired(refreshToken)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT 토큰이 만료되었습니다.");
+    public LoginResponse refresh(String rowRefreshToken) {
+        // 토큰값 null/blank 검사
+        if (rowRefreshToken == null || rowRefreshToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다.");
         }
 
-        // 2. 토큰에서 email 가져오기
-        // 3. DB에서 email 기반으로 refresh token 값 가져옴
-        // 4. refresh token 검사
+        // 토큰이 유효한지 검사
+        try {
+            jwtTokenProvider.getRefreshTokenExpiration(rowRefreshToken);
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+        }
 
+        String tokenHash = hashToken(rowRefreshToken);
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(tokenHash)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token입니다."));
+        if (refreshToken.getExpiredAt().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "만료된 Refresh Token입니다.");
+        }
+
+        // 회전 전 토큰을 먼저 삭제해 재사용을 차단한다.
+        int deletedCount = refreshTokenRepository.deleteIfUsable(
+                refreshToken.getRefreshId(), tokenHash, LocalDateTime.now()
+        );
+        if (deletedCount != 1) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이미 사용되었거나 만료된 Refresh Token입니다.");
+        }
+        return issueTokens(refreshToken.getUser());
     }
 
-    // 회원가입.
+    // 가입 요청을 검증하고 비밀번호를 암호화해 사용자를 저장한다.
     @Transactional
     public void signup(SignupRequest req) {
         String userName = req.name().trim();
@@ -102,37 +100,47 @@ public class AuthService {
         String rawPassword = req.password().trim();
         String phoneNumber = req.phone().trim();
 
-        Optional<User> checkUser = authRepository.findByEmail(email);
-        if (checkUser.isPresent()) {
-            log.warn("중복된 이메일입니다: {}", email);
+        if (authRepository.findByEmail(email).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 등록된 계정입니다.");
         }
-
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        User user = new User(userName, email, encodedPassword, phoneNumber);
 
         try {
-            authRepository.save(user);
+            authRepository.save(new User(userName, email, passwordEncoder.encode(rawPassword), phoneNumber));
             authRepository.flush();
         } catch (DataIntegrityViolationException exception) {
+            log.warn("중복 이메일 가입 요청: {}", email);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 등록된 계정입니다.");
         }
     }
 
-    /*
-     * POST /api/auth/logout
-     * 기능
-     * refresh token, access token 폐기
-     */
+    // 인증된 사용자의 Refresh Token을 모두 제거해 모든 세션을 로그아웃한다.
     @Transactional
-    public void logout() {
+    public void logout(String email) {
+        User user = authRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "지정한 사용자를 찾을 수 없습니다."));
+        // refreshToken Table에서 삭제
+        refreshTokenRepository.deleteAllByUser(user);
     }
 
-    /*
-    * POST /api/auth/refresh
-     */
-    @Transactional
-    public void refresh(){
+    // 사용자용 Access Token과 DB에 저장할 Refresh Token을 함께 발급한다.
+    private LoginResponse issueTokens(User user) {
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail());
+        String rawRefreshToken = jwtTokenProvider.generateRefreshToken();
+        LocalDateTime expiredAt = LocalDateTime.ofInstant(
+                jwtTokenProvider.getRefreshTokenExpiration(rawRefreshToken).toInstant(), ZoneId.systemDefault());
 
+        // refreshToken Table에 insert
+        refreshTokenRepository.save(new RefreshToken(user, hashToken(rawRefreshToken), expiredAt));
+        return new LoginResponse(accessToken, new UserInfo(user.getName(), user.getEmail(), user.getPhone()), rawRefreshToken);
+    }
+
+    // Refresh Token 원문을 저장하지 않도록 SHA-256 해시를 만든다.
+    private String hashToken(String rawToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("해당 방식을 사용할 수 없습니다.", exception);
+        }
     }
 }

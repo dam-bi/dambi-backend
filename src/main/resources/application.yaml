@@ -5,14 +5,12 @@ spring:
     default: local
 
 jwt:
-
-  access-secret: ${JWT_ACCESS_SECRET} # base64
-  refresh-secret: ${JWT_REFRESH_SECRET} # base64
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS} #access token 만료기간
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS} #refresh token 만료기간
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS}
 
 ---
-# local: local DB enabled runtime
 spring:
   config:
     activate:
@@ -27,9 +25,13 @@ spring:
       ddl-auto: validate
     show-sql: true
 
----
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:false}
 
-# dev: shared development DB runtime
+---
 spring:
   config:
     activate:
@@ -44,8 +46,13 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:true}
+
 ---
-# prod: production DB runtime
 spring:
   config:
     activate:
@@ -59,3 +66,9 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:true}

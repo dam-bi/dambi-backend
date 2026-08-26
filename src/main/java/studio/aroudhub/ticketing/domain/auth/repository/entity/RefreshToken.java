@@ -13,7 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Getter
@@ -29,12 +28,16 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", referencedColumnName = "users_id", nullable = false)
     private User user;
 
-    @Column(name = "token", nullable = false, length = 255)
+    @Column(name = "token", nullable = false, unique = true, length = 255)
     private String token;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
-    public RefreshToken(int usersId, String refreshToken, Date refreshTokenExpireDate) {
+    // 사용자 세션을 식별할 Refresh Token 해시와 만료 시각을 생성한다.
+    public RefreshToken(User user, String token, LocalDateTime expiredAt) {
+        this.user = user;
+        this.token = token;
+        this.expiredAt = expiredAt;
     }
 }

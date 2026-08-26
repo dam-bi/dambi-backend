@@ -33,4 +33,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(exception.getStatusCode())
                 .body(new ErrorResponse(exception.getReason()));
     }
+
+    // 처리하지 못한 서버 오류를 클라이언트 오류와 구분해 응답한다.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("서버 오류가 발생했습니다."));
+    }
 }
