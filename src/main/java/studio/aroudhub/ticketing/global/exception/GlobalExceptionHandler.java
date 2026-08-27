@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(false, exception.getMessage()));
+                .body(new ErrorResponse(exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -25,12 +25,19 @@ public class GlobalExceptionHandler {
         String message = fieldError != null ? fieldError.getDefaultMessage() : "잘못된 요청입니다.";
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(false, message));
+                .body(new ErrorResponse(message));
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException exception) {
         return ResponseEntity.status(exception.getStatusCode())
-                .body(new ErrorResponse(false, exception.getReason()));
+                .body(new ErrorResponse(exception.getReason()));
+    }
+
+    // 처리하지 못한 서버 오류를 클라이언트 오류와 구분해 응답한다.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("서버 오류가 발생했습니다."));
     }
 }

@@ -4,9 +4,13 @@ spring:
   profiles:
     default: local
 
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION_SECONDS}
 
 ---
-# local: 개발자 로컬 환경에서 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
@@ -21,24 +25,14 @@ spring:
       ddl-auto: validate
     show-sql: true
 
----
-
-# testWithoutDB: DB 연결 없이 화면/컨트롤러/비DB 테스트를 실행하는 모드
-spring:
-  config:
-    activate:
-      on-profile: testWithoutDB
-  flyway:
-    enabled: false
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
-
+# dev prod 전용 cors 허용 URL
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:false}
 
 ---
-# dev: 개발 서버 환경에서 개발용 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
@@ -53,8 +47,13 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:true}
+
 ---
-# prod: 운영 서버 환경에서 운영 DB를 연결해 실행하는 모드
 spring:
   config:
     activate:
@@ -68,3 +67,9 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+
+auth:
+  cors:
+    allowed-origin: ${FRONTEND_ORIGIN}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:true}
