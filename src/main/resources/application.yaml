@@ -25,9 +25,10 @@ spring:
       ddl-auto: validate
     show-sql: true
 
+# dev prod 전용 cors 허용 URL
 auth:
   cors:
-    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+    allowed-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   cookie:
     secure: ${AUTH_COOKIE_SECURE:false}
 
