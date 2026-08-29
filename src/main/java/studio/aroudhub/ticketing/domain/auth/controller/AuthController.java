@@ -8,15 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.LoginRequest;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.SignupRequest;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.CheckResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.LoginResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.SignupResponse;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.UserInfo;
 import studio.aroudhub.ticketing.domain.auth.service.AuthService;
 
 import java.time.Duration;
@@ -25,10 +23,13 @@ import java.time.Duration;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final String REFRESH_COOKIE_NAME = "refresh_token";
     private final AuthService authService;
     private final boolean secureCookie;
     private final long refreshTokenExpirationSeconds;
+
+    // String 상수
+    private static final String REFRESH_COOKIE_NAME = "refresh_token";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     // 인증 서비스와 Refresh Token 쿠키 설정을 주입한다.
     public AuthController(
@@ -56,6 +57,13 @@ public class AuthController {
         authService.signup(signupReq);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new SignupResponse("회원가입이 완료되었습니다."));
+    }
+
+    // 유효한 Access Token의 사용자 정보를 반환한다. 유효하지 않으면 401 에러를 반환한다.
+    @PostMapping("/check")
+    public ResponseEntity<CheckResponse> check(@RequestHeader(HttpHeaders.AUTHORIZATION) String header) {
+        String accessToken = header.substring(BEARER_PREFIX.length()).trim();
+        return ResponseEntity.ok(authService.check(accessToken));
     }
 
     // 인증된 사용자의 모든 Refresh Token을 폐기하고 쿠키를 제거한다.

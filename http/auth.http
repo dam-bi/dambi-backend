@@ -1,6 +1,28 @@
+
 @baseUrl = http://localhost:8080
-@email = frontend@example.com
+@name = admin
+@email = admin@exam.com
 @password = password123!
+@phone = 010-1234-5678
+
+### 회원가입 성공
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{name}}",
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "phone": "{{phone}}"
+}
+
+> {%
+    client.test("회원가입은 200과 실패사유를 반환한다. ", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.body.message, "에러 발생. ");
+    });
+    client.global.set("message", response.body.message);
+%}
 
 ### 비로그인 사용자는 인증이 필요한 로그아웃 URL에 접근할 수 없다.
 POST {{baseUrl}}/api/auth/logout
@@ -26,6 +48,47 @@ Content-Type: application/json
         client.assert(response.body.accessToken, "Access Token이 없습니다.");
     });
     client.global.set("accessToken", response.body.accessToken);
+%}
+
+### 유효한 Access Token으로 현재 사용자 정보를 확인한다.
+POST {{baseUrl}}/api/auth/check
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("사용자 정보 확인은 200과 사용자 정보를 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.body.name, "사용자 이름이 없습니다.");
+        client.assert(response.body.email === "{{email}}", "로그인한 사용자 이메일이 아닙니다.");
+    });
+%}
+
+### Access Token 없이 사용자 정보를 확인할 수 없다.
+POST {{baseUrl}}/api/auth/check
+
+> {%
+    client.test("토큰 없는 사용자 정보 확인은 401을 반환한다", () => {
+        client.assert(response.status === 401, `예상 상태: 401, 실제 상태: ${response.status}`);
+    });
+%}
+
+### 형식이 잘못된 Access Token으로 사용자 정보를 확인할 수 없다.
+POST {{baseUrl}}/api/auth/check
+Authorization: Bearer invalid.access.token
+
+> {%
+    client.test("잘못된 토큰의 사용자 정보 확인은 401을 반환한다", () => {
+        client.assert(response.status === 401, `예상 상태: 401, 실제 상태: ${response.status}`);
+    });
+%}
+
+### 로그인 요청에서 발급받은 Access Token이 만료된 뒤 사용자 정보를 확인할 수 없다.
+POST {{baseUrl}}/api/auth/check
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("만료된 토큰의 사용자 정보 확인은 401을 반환한다", () => {
+        client.assert(response.status === 401, `예상 상태: 401, 실제 상태: ${response.status}`);
+    });
 %}
 
 ### Access Token 만료를 가정해 Refresh Token 쿠키로 Access Token을 재발급받는다.

@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.auth.repository.AuthRepository;
 import studio.aroudhub.ticketing.domain.auth.repository.RefreshTokenRepository;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.LoginRequest;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.CheckResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.LoginResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.SignupRequest;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.RefreshToken;
@@ -30,6 +31,83 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AuthServiceTest {
+
+    @Test
+    // 유효한 Access Token의 사용자 정보를 반환한다.
+    void check_whenTokenIsValidAndUserExists_returnsUserInfo() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+
+        when(jwtTokenProvider.isAccessTokenExpired("valid-token")).thenReturn(false);
+        when(jwtTokenProvider.getEmail("valid-token")).thenReturn("alice@example.com");
+        when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(user));
+
+        CheckResponse response = authService.check("valid-token");
+
+        assertThat(response).isEqualTo(new CheckResponse("Alice", "alice@example.com"));
+    }
+
+    @Test
+    // 만료된 Access Token은 사용자 조회 전에 접근을 거부한다.
+    void check_whenTokenIsExpired_throwsUnauthorized() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+
+        when(jwtTokenProvider.isAccessTokenExpired("expired-token")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.check("expired-token"))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        verifyNoInteractions(authRepository);
+    }
+
+    @Test
+    // 위조되었거나 형식이 잘못된 Access Token은 접근을 거부한다.
+    void check_whenTokenIsInvalid_throwsUnauthorized() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+
+        when(jwtTokenProvider.isAccessTokenExpired("invalid-token")).thenReturn(false);
+        when(jwtTokenProvider.getEmail("invalid-token")).thenThrow(new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+        assertThatThrownBy(() -> authService.check("invalid-token"))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        verifyNoInteractions(authRepository);
+    }
+
+    @Test
+    // 삭제되었거나 존재하지 않는 인증 사용자는 접근을 거부한다.
+    void check_whenUserDoesNotExist_throwsUnauthorized() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+
+        when(jwtTokenProvider.isAccessTokenExpired("valid-token")).thenReturn(false);
+        when(jwtTokenProvider.getEmail("valid-token")).thenReturn("alice@example.com");
+        when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.check("valid-token"))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 
     @Test
     void signup_encodesPasswordAndSavesUser() {

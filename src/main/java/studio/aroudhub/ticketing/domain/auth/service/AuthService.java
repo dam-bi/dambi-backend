@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.auth.repository.AuthRepository;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.LoginRequest;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.SignupRequest;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.CheckResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.LoginResponse;
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.UserInfo;
 import studio.aroudhub.ticketing.domain.auth.repository.RefreshTokenRepository;
@@ -120,6 +121,19 @@ public class AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "지정한 사용자를 찾을 수 없습니다."));
         // refreshToken Table에서 삭제
         refreshTokenRepository.deleteAllByUser(user);
+    }
+
+    // Access Token을 검증하고 현재 사용자 정보를 반환한다.
+    public CheckResponse check(String token) {
+        // access token이 만료되었는지 확인.
+        if (jwtTokenProvider.isAccessTokenExpired(token)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "만료된 Access Token 입니다.");
+        }
+
+        String email = jwtTokenProvider.getEmail(token);
+        User user = authRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "지정한 사용자를 찾을 수 없습니다."));
+        return new CheckResponse(user.getName(), user.getEmail());
     }
 
     // 사용자용 Access Token과 DB에 저장할 Refresh Token을 함께 발급한다.
