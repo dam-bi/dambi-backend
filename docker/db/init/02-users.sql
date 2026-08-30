@@ -1,17 +1,19 @@
-INSERT INTO users (users_id, name, password, email, phone)
+INSERT INTO users (users_id, name, password, email, phone, role)
 VALUES
     (
         1,
-        'Frontend Tester',
-        '$2a$10$pWchNiC9.p0c1rsXNpUvT.eTS/sUCLpuOuMp4hul6Q8/g/fNRduEi',
-        'frontend@example.com',
-        '010-1234-5678'
+        'admin',
+        '$2a$10$swkM92mgV4nXERrIziqugerSKjC8Hmz8/axcCiVLwAYyIfWNZmh.S',
+        'admin@email.com',
+        '010-1234-5678',
+        'admin'
     )
 ON CONFLICT (email) DO UPDATE
 SET
     name = EXCLUDED.name,
     password = EXCLUDED.password,
-    phone = EXCLUDED.phone;
+    phone = EXCLUDED.phone,
+    role = EXCLUDED.role;
 
 SELECT setval(
     pg_get_serial_sequence('users', 'users_id'),

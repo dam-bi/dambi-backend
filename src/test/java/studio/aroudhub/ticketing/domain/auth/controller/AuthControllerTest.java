@@ -12,12 +12,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 import studio.aroudhub.ticketing.domain.auth.service.AuthService;
+import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.CheckResponse;
 import studio.aroudhub.ticketing.global.exception.GlobalExceptionHandler;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -36,6 +38,36 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
+
+    @Test
+    // 유효한 Access Token으로 사용자 정보를 반환한다.
+    void check_whenTokenIsValid_returnsUserInfo() throws Exception {
+        when(authService.check("valid-token"))
+                .thenReturn(new CheckResponse("Alice", "alice@example.com"));
+
+        mockMvc.perform(post("/api/auth/check")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Alice"))
+                .andExpect(jsonPath("$.email").value("alice@example.com"))
+                .andExpect(jsonPath("$.phone").doesNotExist())
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist());
+
+        verify(authService).check("valid-token");
+    }
+
+    @Test
+    // 토큰의 사용자가 삭제된 경우 인증 실패를 반환한다.
+    void check_whenUserDoesNotExist_returnsUnauthorized() throws Exception {
+        doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "지정한 사용자를 찾을 수 없습니다."))
+                .when(authService)
+                .check("valid-token");
+
+        mockMvc.perform(post("/api/auth/check")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void signup_whenRequestValid_returnsCreated() throws Exception {

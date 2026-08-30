@@ -26,6 +26,8 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .gradle-user
+.gradle-user-home
+.gradle-test-cache
 
 ### NetBeans ###
 /nbproject/private/
