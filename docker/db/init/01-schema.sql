@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(255) NOT NULL,
-    role VARCHAR(10)
+    role VARCHAR(10) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS refresh_token (

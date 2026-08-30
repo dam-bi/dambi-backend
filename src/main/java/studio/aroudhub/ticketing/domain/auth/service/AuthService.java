@@ -17,6 +17,7 @@ import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.UserInfo;
 import studio.aroudhub.ticketing.domain.auth.repository.RefreshTokenRepository;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.RefreshToken;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.User;
+import studio.aroudhub.ticketing.domain.auth.repository.entity.UserRole;
 import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
+import java.util.Locale;
 
 @Service
 public class AuthService {
@@ -46,9 +48,9 @@ public class AuthService {
     // 이메일과 비밀번호를 검증하고 Access/Refresh Token을 발급한다.
     @Transactional
     public LoginResponse login(LoginRequest req) {
+
         String email = req.email().trim();
         String rawPassword = req.password();
-
         // email 검증
         User user = authRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "가입되지 않았거나 이메일이 올바르지 않습니다."));
@@ -57,7 +59,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
         }
 
-        return issueTokens(user);
+        return createTokens(user);
     }
 
     // Refresh Token을 검증하고 기존 토큰을 교체해 새 Access Token을 발급한다.
@@ -90,12 +92,13 @@ public class AuthService {
         if (deletedCount != 1) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이미 사용되었거나 만료된 Refresh Token입니다.");
         }
-        return issueTokens(refreshToken.getUser());
+        return createTokens(refreshToken.getUser());
     }
 
     // 가입 요청을 검증하고 비밀번호를 암호화해 사용자를 저장한다.
     @Transactional
     public void signup(SignupRequest req) {
+        UserRole role = parseUserRole(req.role());
         String userName = req.name().trim();
         String email = req.email().trim();
         String rawPassword = req.password().trim();
@@ -106,11 +109,25 @@ public class AuthService {
         }
 
         try {
-            authRepository.save(new User(userName, email, passwordEncoder.encode(rawPassword), phoneNumber));
+            authRepository.save(new User(userName, email, passwordEncoder.encode(rawPassword), phoneNumber, role));
             authRepository.flush();
         } catch (DataIntegrityViolationException exception) {
+            // 데이터 무결성 위반
             log.warn("중복 이메일 가입 요청: {}", email);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 등록된 계정입니다.");
+        }
+    }
+
+    // 대소문자를 구분하지 않고 가입 역할을 enum으로 변환한다.
+    private UserRole parseUserRole(String role) {
+        if (role == null || role.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "역할은 필수입니다.");
+        }
+
+        try {
+            return UserRole.valueOf(role.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바르지 않은 role입니다.");
         }
     }
 
@@ -133,11 +150,11 @@ public class AuthService {
         String email = jwtTokenProvider.getEmail(token);
         User user = authRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "지정한 사용자를 찾을 수 없습니다."));
-        return new CheckResponse(user.getName(), user.getEmail());
+        return new CheckResponse(user.getName(), user.getEmail(), user.getRole());
     }
 
     // 사용자용 Access Token과 DB에 저장할 Refresh Token을 함께 발급한다.
-    private LoginResponse issueTokens(User user) {
+    private LoginResponse createTokens(User user) {
         String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail());
         String rawRefreshToken = jwtTokenProvider.generateRefreshToken();
         LocalDateTime expiredAt = LocalDateTime.ofInstant(
@@ -145,7 +162,7 @@ public class AuthService {
 
         // refreshToken Table에 insert
         refreshTokenRepository.save(new RefreshToken(user, hashToken(rawRefreshToken), expiredAt));
-        return new LoginResponse(accessToken, new UserInfo(user.getName(), user.getEmail(), user.getPhone()), rawRefreshToken);
+        return new LoginResponse(accessToken, new UserInfo(user.getName(), user.getEmail(), user.getPhone(), user.getRole()), rawRefreshToken);
     }
 
     // Refresh Token 원문을 저장하지 않도록 SHA-256 해시를 만든다.

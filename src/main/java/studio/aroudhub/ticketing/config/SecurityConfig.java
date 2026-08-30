@@ -49,13 +49,19 @@ public class SecurityConfig {
         return source;
     }
 
-    // JWT 기반 보안 필터 체인을 구성한다.
+    /*
+    * security filter 구성하는 메서드
+    * 1. JwAutenticationFilter 실행
+    * 2. JWT에서 email, role 추출하여 Authentication 생성 및 SecurityContextHolder에 저장
+    * 3. AuthorizaionFilter 실행
+    * 4. 필터 구성 후에 securityFilterChain 메서드 코드 동작
+     */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(Customizer.withDefaults()) // 등록된 CorsConfigurationSource 를 적용시킴.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // stateless 방식
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(
                         (request, response, authenticationException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
                 ))
@@ -69,8 +75,9 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/signup",
                                 "/api/auth/refresh"
-                        ).permitAll() // jwt 토큰없이 통과
-                        .anyRequest().authenticated()
+                        ).permitAll() // 위 URL은 jwt 토큰없이 접근 가능.
+                        .requestMatchers("/api/admin", "/api/admin/**").hasRole("ADMIN") // 해당 엔드포인트는 ADMIN role만 접근허용
+                        .anyRequest().authenticated() // permitAll()에서 설정하지 않은 나머지 주소는 무조건 로그인(인증) 필요.
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(httpBasic -> httpBasic.disable())

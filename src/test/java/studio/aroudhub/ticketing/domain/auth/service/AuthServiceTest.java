@@ -19,6 +19,7 @@ import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 import java.util.Optional;
 import java.util.Date;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -49,7 +51,7 @@ class AuthServiceTest {
 
         CheckResponse response = authService.check("valid-token");
 
-        assertThat(response).isEqualTo(new CheckResponse("Alice", "alice@example.com"));
+        assertThat(response).isEqualTo(new CheckResponse("Alice", "alice@example.com", UserRole.USER));
     }
 
     @Test
@@ -110,6 +112,7 @@ class AuthServiceTest {
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    // 회원가입 요청의 비밀번호를 인코딩하고 USER 역할로 저장한다.
     @Test
     void signup_encodesPasswordAndSavesUser() {
         AuthRepository authRepository = mock(AuthRepository.class);
@@ -117,7 +120,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        SignupRequest request = new SignupRequest("  Alice  ", "  alice@example.com  ", "  plain-password  ", "  010-1111-2222  ");
+        SignupRequest request = new SignupRequest("  Alice  ", "  alice@example.com  ", "  plain-password  ", "  010-1111-2222  ", "USER");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("plain-password")).thenReturn("encoded-password");
@@ -130,6 +133,7 @@ class AuthServiceTest {
         verify(authRepository).flush();
     }
 
+    // 이미 등록된 이메일의 회원가입 요청을 충돌로 처리한다.
     @Test
     void signup_whenEmailAlreadyExists_throwsConflict() {
         AuthRepository authRepository = mock(AuthRepository.class);
@@ -137,7 +141,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222");
+        SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222", "USER");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(mock(User.class)));
 
@@ -150,6 +154,7 @@ class AuthServiceTest {
         verifyNoInteractions(passwordEncoder);
     }
 
+    // 저장 과정의 이메일 고유 제약 위반을 충돌로 처리한다.
     @Test
     void signup_whenUniqueConstraintFails_throwsConflict() {
         AuthRepository authRepository = mock(AuthRepository.class);
@@ -157,7 +162,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222");
+        SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222", "USER");
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("plain-password")).thenReturn("encoded-password");
@@ -169,6 +174,50 @@ class AuthServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    // 소문자 USER와 ADMIN 역할로도 회원가입할 수 있다.
+    @Test
+    void signup_withLowercaseRoles_savesMatchingUserRoles() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+
+        when(authRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
+        when(authRepository.findByEmail("admin@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("plain-password")).thenReturn("encoded-password");
+
+        authService.signup(new SignupRequest("User", "user@example.com", "plain-password", "010-1111-2222", "user"));
+        authService.signup(new SignupRequest("Admin", "admin@example.com", "plain-password", "010-2222-3333", "admin"));
+
+        org.mockito.ArgumentCaptor<User> userCaptor = org.mockito.ArgumentCaptor.forClass(User.class);
+        verify(authRepository, times(2)).save(userCaptor.capture());
+        assertThat(userCaptor.getAllValues())
+                .extracting(User::getRole)
+                .containsExactly(UserRole.USER, UserRole.ADMIN);
+    }
+
+    // null·공백·미정의 역할은 회원가입 요청 오류로 처리한다.
+    @Test
+    void signup_withInvalidRole_throwsBadRequest() {
+        AuthRepository authRepository = mock(AuthRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
+        RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
+        AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
+
+        for (String role : Arrays.asList(null, "", " ", "MANAGER")) {
+            SignupRequest request = new SignupRequest("Alice", "alice@example.com", "plain-password", "010-1111-2222", role);
+
+            assertThatThrownBy(() -> authService.signup(request))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .extracting("statusCode")
+                    .isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+
+        verifyNoInteractions(authRepository, passwordEncoder);
     }
 
     @Test

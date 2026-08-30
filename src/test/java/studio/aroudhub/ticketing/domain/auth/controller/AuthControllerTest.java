@@ -43,13 +43,14 @@ class AuthControllerTest {
     // 유효한 Access Token으로 사용자 정보를 반환한다.
     void check_whenTokenIsValid_returnsUserInfo() throws Exception {
         when(authService.check("valid-token"))
-                .thenReturn(new CheckResponse("Alice", "alice@example.com"));
+                .thenReturn(new CheckResponse("Alice", "alice@example.com", studio.aroudhub.ticketing.domain.auth.repository.entity.UserRole.USER));
 
         mockMvc.perform(post("/api/auth/check")
                         .header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
+                .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.phone").doesNotExist())
                 .andExpect(jsonPath("$.password").doesNotExist())
                 .andExpect(jsonPath("$.refreshToken").doesNotExist());
