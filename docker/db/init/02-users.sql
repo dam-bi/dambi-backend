@@ -6,7 +6,7 @@ VALUES
         '$2a$10$swkM92mgV4nXERrIziqugerSKjC8Hmz8/axcCiVLwAYyIfWNZmh.S',
         'admin@email.com',
         '010-1234-5678',
-        'admin'
+        'ADMIN'
     )
 ON CONFLICT (email) DO UPDATE
 SET

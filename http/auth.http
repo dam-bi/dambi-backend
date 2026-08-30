@@ -1,9 +1,16 @@
 
 @baseUrl = http://localhost:8080
+
+### USER role 테스트용 계정
 @name = admin
 @email = admin@exam.com
 @password = password123!
 @phone = 010-1234-5678
+@role = USER
+
+### ADMIN role 테스트용
+@adminEmail = admin@email.com
+@adminPW = qwer1234
 
 ### 회원가입 성공
 POST {{baseUrl}}/api/auth/signup
@@ -13,7 +20,8 @@ Content-Type: application/json
   "name": "{{name}}",
   "email": "{{email}}",
   "password": "{{password}}",
-  "phone": "{{phone}}"
+  "phone": "{{phone}}",
+  "role": "{{role}}"
 }
 
 > {%
@@ -49,6 +57,24 @@ Content-Type: application/json
     });
     client.global.set("accessToken", response.body.accessToken);
 %}
+
+### admin용 계정 로그인
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPW}}"
+}
+
+> {%
+    client.test("로그인은 200과 Access Token을 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+        client.assert(response.body.accessToken, "Access Token이 없습니다.");
+    });
+    client.global.set("accessToken", response.body.accessToken);
+%}
+
 
 ### 유효한 Access Token으로 현재 사용자 정보를 확인한다.
 POST {{baseUrl}}/api/auth/check
@@ -128,6 +154,16 @@ Authorization: Bearer {{accessToken}}
 
 > {%
     client.test("로그아웃 뒤에도 만료 전 Access Token은 200을 반환한다", () => {
+        client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
+    });
+%}
+
+### admin/user 접근 테스트: /api/admin에 user role이 접근하는지 확인.
+POST {{baseUrl}}/api/admin/
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("ADMIN 계정이면 테스트용 string 문자열을 받는다.", () => {
         client.assert(response.status === 200, `예상 상태: 200, 실제 상태: ${response.status}`);
     });
 %}
