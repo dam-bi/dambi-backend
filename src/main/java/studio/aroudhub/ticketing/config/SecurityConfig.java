@@ -49,7 +49,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // JWT 기반 무상태 보안 필터 체인을 구성한다.
+    // JWT 기반 보안 필터 체인을 구성한다.
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -69,7 +69,7 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/signup",
                                 "/api/auth/refresh"
-                        ).permitAll()
+                        ).permitAll() // jwt 토큰없이 통과
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

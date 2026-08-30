@@ -13,6 +13,7 @@ import studio.aroudhub.ticketing.domain.auth.repository.DTO.response.LoginRespon
 import studio.aroudhub.ticketing.domain.auth.repository.DTO.request.SignupRequest;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.RefreshToken;
 import studio.aroudhub.ticketing.domain.auth.repository.entity.User;
+import studio.aroudhub.ticketing.domain.auth.repository.entity.UserRole;
 import studio.aroudhub.ticketing.domain.auth.security.JwtTokenProvider;
 
 import java.util.Optional;
@@ -40,7 +41,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
 
         when(jwtTokenProvider.isAccessTokenExpired("valid-token")).thenReturn(false);
         when(jwtTokenProvider.getEmail("valid-token")).thenReturn("alice@example.com");
@@ -198,7 +199,7 @@ class AuthServiceTest {
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
         LoginRequest request = new LoginRequest("alice@example.com", "plain-password");
-        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(savedUser));
         when(passwordEncoder.matches("plain-password", "encoded-password")).thenReturn(false);
@@ -221,7 +222,7 @@ class AuthServiceTest {
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
         LoginRequest request = new LoginRequest(" alice@example.com ", " plain-password ");
-        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User savedUser = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(savedUser));
         when(passwordEncoder.matches(" plain-password ", "encoded-password")).thenReturn(true);
@@ -246,7 +247,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
 
         when(authRepository.findByEmail("alice@example.com")).thenReturn(Optional.of(user));
 
@@ -264,7 +265,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
         RefreshToken storedToken = new RefreshToken(user, "stored-token-hash", LocalDateTime.now().plusDays(1));
 
         when(jwtTokenProvider.getRefreshTokenExpiration("refresh-token"))
@@ -295,7 +296,7 @@ class AuthServiceTest {
         JwtTokenProvider jwtTokenProvider = mock(JwtTokenProvider.class);
         RefreshTokenRepository refreshTokenRepository = mock(RefreshTokenRepository.class);
         AuthService authService = new AuthService(authRepository, passwordEncoder, jwtTokenProvider, refreshTokenRepository);
-        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222");
+        User user = new User("Alice", "alice@example.com", "encoded-password", "010-1111-2222", UserRole.USER);
         RefreshToken storedToken = new RefreshToken(user, "stored-token-hash", LocalDateTime.now().plusDays(1));
 
         when(jwtTokenProvider.getRefreshTokenExpiration("refresh-token"))
